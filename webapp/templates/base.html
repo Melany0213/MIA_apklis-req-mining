@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block titulo %}MIA{% endblock %} — Sistema de Requisitos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            apklis: {
+              900: '#0a1628',
+              800: '#0f2044',
+              700: '#1a3a6e',
+              600: '#1e4d9e',
+              500: '#2563c4',
+              400: '#4a90d9',
+              300: '#7ab3e8',
+              100: '#e8f1fb',
+            }
+          },
+          screens: { print: { raw: 'print' } }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* ── Sidebar links ── */
+    .sidebar-link {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.625rem 1rem; border-radius: 0.5rem;
+      font-size: 0.875rem; font-weight: 500;
+      color: #7ab3e8; transition: all 0.15s;
+    }
+    .sidebar-link:hover { background: #1a3a6e; color: #fff; }
+    .sidebar-link.active  { background: #1e4d9e; color: #fff; box-shadow: 0 1px 4px #0005; }
+
+    /* ── Responsive: sidebar oculto en móvil ── */
+    @media (max-width: 767px) {
+      #sidebar   { transform: translateX(-100%); transition: transform 0.25s; }
+      #sidebar.open { transform: translateX(0); }
+      #main-content { margin-left: 0 !important; }
+    }
+
+    /* ── Estilos de impresión ── */
+    @media print {
+      #topbar, #sidebar, #btn-menu, .no-print { display: none !important; }
+      #main-content { margin-left: 0 !important; padding: 0 !important; }
+      body { background: white !important; }
+      .print-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+      a { color: inherit !important; text-decoration: none !important; }
+      /* Encabezado de tesis visible solo al imprimir */
+      #print-header { display: block !important; }
+      /* Forzar colores en tablas/badges */
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    /* Oculto en pantalla, visible al imprimir */
+    #print-header { display: none; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+  <!-- ── Encabezado para impresión / PDF ── -->
+  <div id="print-header" class="mb-6 pb-4 border-b-2 border-gray-300">
+    <h1 class="text-2xl font-bold text-gray-900">MIA — Sistema de Identificación de Requisitos</h1>
+    <p class="text-gray-600 text-sm mt-1">Tesis · Maestría en Informática Avanzada · Universidad de las Ciencias Informáticas (UCI)</p>
+    <p class="text-gray-500 text-sm">Autora: Ing. Melany Coto Ramírez · {% now "d/m/Y H:i" %}</p>
+    <p class="text-gray-500 text-sm">Sección: {% block subtitulo_print %}{% endblock %}</p>
+  </div>
+
+  <!-- ── Topbar ── -->
+  <header id="topbar" class="bg-apklis-900 text-white h-14 flex items-center px-4 gap-3 shadow-lg z-20 fixed top-0 left-0 right-0">
+
+    <!-- Botón hamburguesa (móvil) -->
+    <button id="btn-menu" onclick="toggleSidebar()"
+      class="md:hidden p-2 rounded text-apklis-300 hover:text-white hover:bg-apklis-700 transition">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <!-- Logo -->
+    <div class="flex items-center gap-2 w-52 shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-apklis-500 flex items-center justify-center font-black text-white text-sm shadow">M</div>
+      <div class="leading-tight">
+        <p class="font-bold text-white text-sm tracking-wide">MIA</p>
+        <p class="text-apklis-300 text-xs">Requisitos desde Apklis</p>
+      </div>
+    </div>
+
+    <div class="flex-1"></div>
+
+    <span class="hidden lg:block text-xs text-apklis-300">
+      Tesis · Maestría en Informática Avanzada · UCI
+    </span>
+
+    <!-- Botón exportar PDF (visible en todas las páginas) -->
+    <button onclick="exportarPDF()"
+      class="no-print flex items-center gap-1.5 text-xs bg-apklis-700 hover:bg-apklis-600 text-white border border-apklis-600 rounded px-3 py-1.5 transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+      </svg>
+      Imprimir / PDF
+    </button>
+
+    <a href="/admin/" class="no-print text-xs text-apklis-300 hover:text-white border border-apklis-700 rounded px-3 py-1 transition-colors">
+      Admin
+    </a>
+  </header>
+
+  <!-- ── Overlay móvil ── -->
+  <div id="overlay" onclick="toggleSidebar()"
+    class="hidden fixed inset-0 bg-black/40 z-10 md:hidden"></div>
+
+  <!-- ── Layout: sidebar + contenido ── -->
+  <div class="flex pt-14 min-h-screen">
+
+    <!-- ── Sidebar ── -->
+    <aside id="sidebar"
+      class="w-56 bg-apklis-800 fixed top-14 left-0 bottom-0 flex flex-col shadow-xl z-20 overflow-y-auto">
+
+      <!-- Corpus -->
+      <div class="px-3 pt-5 pb-2">
+        <p class="text-apklis-400 text-xs font-semibold uppercase tracking-widest px-1 mb-2">Corpus</p>
+        <a href="#" class="sidebar-link">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Importar opiniones
+        </a>
+        <a href="#" class="sidebar-link">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Ver corpus
+        </a>
+      </div>
+
+      <div class="border-t border-apklis-700 mx-3 my-1"></div>
+
+      <!-- Método -->
+      <div class="px-3 py-2">
+        <p class="text-apklis-400 text-xs font-semibold uppercase tracking-widest px-1 mb-2">Método</p>
+        <a href="#" class="sidebar-link">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Preprocesamiento
+        </a>
+        <a href="#" class="sidebar-link">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Clasificar
+        </a>
+        <a href="#" class="sidebar-link">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          Validación humana
+        </a>
+      </div>
+
+      <div class="border-t border-apklis-700 mx-3 my-1"></div>
+
+      <!-- Evaluación -->
+      <div class="px-3 py-2">
+        <p class="text-apklis-400 text-xs font-semibold uppercase tracking-widest px-1 mb-2">Evaluación</p>
+        <a href="/evaluacion/" class="sidebar-link {% block nav_experimentos %}{% endblock %}">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Experimentos
+        </a>
+        <a href="/evaluacion/exportar/" class="sidebar-link no-print">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Exportar CSV
+        </a>
+      </div>
+
+      <div class="flex-1"></div>
+      <div class="px-4 py-4 border-t border-apklis-700">
+        <p class="text-apklis-300 text-xs font-medium">Ing. Melany Coto Ramírez</p>
+        <p class="text-apklis-500 text-xs mt-0.5">v0.1.0 · Python 3.14 · Django 6</p>
+      </div>
+    </aside>
+
+    <!-- ── Área de contenido ── -->
+    <main id="main-content" class="ml-0 md:ml-56 flex-1 px-4 md:px-8 py-6 md:py-8">
+      {% block contenido %}{% endblock %}
+    </main>
+
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const s = document.getElementById('sidebar');
+      const o = document.getElementById('overlay');
+      s.classList.toggle('open');
+      o.classList.toggle('hidden');
+    }
+    function exportarPDF() {
+      window.print();
+    }
+  </script>
+</body>
+</html>

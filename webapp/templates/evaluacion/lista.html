@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block titulo %}Experimentos{% endblock %}
+{% block subtitulo_print %}Registro de Experimentos{% endblock %}
+{% block nav_experimentos %}active{% endblock %}
+
+{% block contenido %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Registro de Experimentos</h1>
+    <p class="text-gray-500 text-sm mt-1">Cada fila es una combinación de representación + clasificador evaluada.</p>
+  </div>
+  <a href="/evaluacion/exportar/"
+     class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded shadow">
+    ⬇ Exportar CSV
+  </a>
+</div>
+
+{% if corridas %}
+<!-- Tarjetas resumen -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+  <div class="bg-white rounded-lg shadow p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Total de corridas</p>
+    <p class="text-3xl font-bold text-blue-700 mt-1">{{ corridas|length }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Mejor F1 global</p>
+    <p class="text-3xl font-bold text-green-600 mt-1">{{ mejor_f1|floatformat:4 }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Mejor F1 TF-IDF (baseline)</p>
+    <p class="text-3xl font-bold text-orange-500 mt-1">
+      {% if mejor_tfidf_f1 %}{{ mejor_tfidf_f1|floatformat:4 }}{% else %}—{% endif %}
+    </p>
+  </div>
+</div>
+
+<!-- Tabla de corridas -->
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <table class="min-w-full text-sm">
+    <thead class="bg-blue-800 text-white">
+      <tr>
+        <th class="px-4 py-3 text-left">#</th>
+        <th class="px-4 py-3 text-left">Representación</th>
+        <th class="px-4 py-3 text-left">Clasificador</th>
+        <th class="px-4 py-3 text-right">Precisión</th>
+        <th class="px-4 py-3 text-right">Recall</th>
+        <th class="px-4 py-3 text-right font-bold">F1</th>
+        <th class="px-4 py-3 text-center">Supera baseline</th>
+        <th class="px-4 py-3 text-left">Dataset</th>
+        <th class="px-4 py-3 text-left">Fecha</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for c in corridas %}
+      <tr class="hover:bg-blue-50 transition-colors {% if c.f1_global == mejor_f1 %}bg-green-50{% endif %}">
+        <td class="px-4 py-3 text-gray-400">{{ forloop.counter }}</td>
+        <td class="px-4 py-3">
+          {% if c.metodo == "semantico" %}
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-medium">Semántico</span>
+          {% else %}
+            <span class="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded-full font-medium">TF-IDF</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 font-medium text-gray-700">{{ c.get_clasificador_display }}</td>
+        <td class="px-4 py-3 text-right text-gray-600">{{ c.precision_global|floatformat:4 }}</td>
+        <td class="px-4 py-3 text-right text-gray-600">{{ c.recall_global|floatformat:4 }}</td>
+        <td class="px-4 py-3 text-right font-bold
+          {% if c.f1_global == mejor_f1 %}text-green-600{% else %}text-gray-800{% endif %}">
+          {{ c.f1_global|floatformat:4 }}
+        </td>
+        <td class="px-4 py-3 text-center">
+          {% with supera=c.es_mejor_que_baseline %}
+            {% if supera is None %}
+              <span class="text-gray-400">—</span>
+            {% elif supera %}
+              <span class="text-green-600 font-bold">✓ Sí</span>
+            {% else %}
+              <span class="text-red-500">✗ No</span>
+            {% endif %}
+          {% endwith %}
+        </td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ c.dataset|default:"—" }}</td>
+        <td class="px-4 py-3 text-gray-400 text-xs">{{ c.fecha|date:"d/m/Y H:i" }}</td>
+        <td class="px-4 py-3">
+          <a href="/evaluacion/{{ c.pk }}/"
+             class="text-blue-600 hover:underline text-xs">Ver detalle →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+<div class="bg-white rounded-lg shadow p-12 text-center">
+  <p class="text-4xl mb-4">🔬</p>
+  <p class="text-gray-600 font-medium">Aún no hay experimentos registrados.</p>
+  <p class="text-gray-400 text-sm mt-2">
+    Los experimentos se registran automáticamente al evaluar el clasificador desde <code>nucleo/evaluacion/</code>.
+  </p>
+</div>
+{% endif %}
+{% endblock %}

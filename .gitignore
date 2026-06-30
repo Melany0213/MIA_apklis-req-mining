@@ -1,0 +1,33 @@
+# Entorno Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+
+# Variables de entorno (nunca versionar secretos reales)
+.env
+
+# Modelos descargados y datos sensibles
+modelos/
+datos/corpus_crudo/
+datos/gold_standard_privado/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
