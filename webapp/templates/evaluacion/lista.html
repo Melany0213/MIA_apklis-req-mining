@@ -92,6 +92,63 @@
   </table>
 </div>
 
+<!-- Detalle de la mejor corrida -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+
+  <!-- Configuración de la mejor corrida -->
+  <div class="bg-white rounded-lg shadow p-5">
+    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Configuración de la mejor corrida</h2>
+    <dl class="space-y-2 text-sm">
+      <div class="flex justify-between border-b border-gray-50 pb-2">
+        <dt class="text-gray-500">Representación</dt>
+        <dd class="font-semibold">{{ mejor_corrida.get_metodo_display }}</dd>
+      </div>
+      {% if mejor_corrida.modelo_embeddings %}
+      <div class="flex justify-between border-b border-gray-50 pb-2">
+        <dt class="text-gray-500">Modelo embeddings</dt>
+        <dd class="font-mono text-xs text-right">{{ mejor_corrida.modelo_embeddings }}</dd>
+      </div>
+      {% endif %}
+      <div class="flex justify-between border-b border-gray-50 pb-2">
+        <dt class="text-gray-500">Clasificador</dt>
+        <dd class="font-semibold">{{ mejor_corrida.get_clasificador_display }}</dd>
+      </div>
+      <div class="flex justify-between border-b border-gray-50 pb-2">
+        <dt class="text-gray-500">Hiperparámetros</dt>
+        <dd class="font-mono text-xs text-right max-w-xs break-all">{{ mejor_corrida.hiperparametros }}</dd>
+      </div>
+      <div class="flex justify-between">
+        <dt class="text-gray-500">Semilla aleatoria</dt>
+        <dd class="font-semibold">{{ mejor_corrida.semilla }}</dd>
+      </div>
+    </dl>
+    <a href="/evaluacion/{{ mejor_corrida.pk }}/" class="inline-block mt-4 text-blue-600 hover:underline text-xs">Ver detalle completo →</a>
+  </div>
+
+  <!-- Distribución de clases en el conjunto evaluado -->
+  <div class="bg-white rounded-lg shadow p-5">
+    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Distribución de clases</h2>
+    <p class="text-xs text-gray-400 mb-4">Soporte real en el conjunto evaluado de la mejor corrida</p>
+    {% for d in distribucion_clases %}
+    <div class="mb-3 last:mb-0">
+      <div class="flex justify-between text-xs mb-1">
+        <span class="font-semibold
+          {% if d.etiqueta == 'RF' %}text-blue-700{% elif d.etiqueta == 'RNF' %}text-purple-700{% else %}text-gray-600{% endif %}">
+          {% if d.etiqueta == 'RF' %}RF — Requisito Funcional{% elif d.etiqueta == 'RNF' %}RNF — Requisito No Funcional{% else %}Ruido{% endif %}
+        </span>
+        <span class="text-gray-500">{{ d.soporte }} · {{ d.porcentaje }}%</span>
+      </div>
+      <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div class="h-full rounded-full
+          {% if d.etiqueta == 'RF' %}bg-blue-600{% elif d.etiqueta == 'RNF' %}bg-purple-600{% else %}bg-gray-400{% endif %}"
+          style="width: {{ d.porcentaje }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
 {% else %}
 <div class="bg-white rounded-lg shadow p-12 text-center">
   <p class="text-4xl mb-4">🔬</p>

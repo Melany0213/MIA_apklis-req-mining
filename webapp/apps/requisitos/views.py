@@ -24,10 +24,33 @@ class CorridaListaView(ListView):
             .order_by("-f1_global")
             .first()
         )
+        mejor_corrida = corridas[0] if corridas else None
+
         ctx["mejor_f1"] = mejor_f1
         ctx["mejor_tfidf_f1"] = mejor_tfidf.f1_global if mejor_tfidf else None
         ctx["etiquetas"] = ETIQUETAS
+        ctx["mejor_corrida"] = mejor_corrida
+        ctx["distribucion_clases"] = self._distribucion_clases(mejor_corrida)
         return ctx
+
+    @staticmethod
+    def _distribucion_clases(corrida):
+        """Soporte real (nº de opiniones) por clase en el conjunto evaluado de la mejor corrida."""
+        if corrida is None:
+            return []
+        soportes = {
+            etiqueta: corrida.metricas_por_clase.get(etiqueta, {}).get("soporte", 0)
+            for etiqueta in ETIQUETAS
+        }
+        total = sum(soportes.values())
+        return [
+            {
+                "etiqueta": etiqueta,
+                "soporte": soportes[etiqueta],
+                "porcentaje": round(soportes[etiqueta] / total * 100, 1) if total else 0,
+            }
+            for etiqueta in ETIQUETAS
+        ]
 
 
 class CorridaDetalleView(DetailView):

@@ -86,6 +86,18 @@ Trabajar una etapa a la vez, con pruebas, y registrar resultados en la bitácora
 1. **Andamiaje:** repo, `pyproject`/requirements con versiones ancladas, estructura de carpetas,
    `nucleo/` vacío con pruebas, proyecto Django mínimo, PostgreSQL conectado.
 2. **Fase 1 – Extracción:** obtener y almacenar un corpus de Apklis (con anonimización).
+
+   Apklis expone una API REST pública y sin autenticación en `https://api.apklis.cu/`
+   (la misma que consume su sitio Angular en `https://www.apklis.cu`). Endpoints usados:
+   - `GET /v2/application/` — catálogo de apps (paginado `limit`/`offset`; 1481 apps a jul-2026).
+   - `GET /v2/review/?application=<package_name>&public=true` — reseñas públicas de una app
+     (`comment`, `rating`, `published`, `version`, `user.username`).
+   No hace falta scraping de HTML. `nucleo/extraccion/apklis.py` implementa un cliente
+   respetuoso (espera entre peticiones, User-Agent identificable) y
+   `nucleo/extraccion/anonimizacion.py` hashea `user.username` con HMAC-SHA256 antes de que
+   el dato toque disco — nunca se guarda username, nombre real ni avatar.
+   Caveat: el texto libre del comentario puede contener PII que el propio autor escribió
+   (teléfonos, nombres) — no se filtra en la extracción; a decidir si se redacta en fase 2.
 3. **Fase 2 – Preprocesamiento:** canal spaCy es-CU + pruebas con ejemplos de jerga local.
 4. **Fase 3 – Representación:** embeddings semánticos **y** baseline TF-IDF.
 5. **Fase 4 – Clasificación:** entrenar/evaluar clasificadores sobre ambas representaciones.
