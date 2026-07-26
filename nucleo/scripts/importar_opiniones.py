@@ -39,41 +39,26 @@ def _preparar_django() -> None:
     django.setup()
 
 
-def _cli() -> None:
-    parser = argparse.ArgumentParser(
-        description="Importa opiniones + propuestas (zero-shot) a las tablas Opinion/Requisito."
-    )
-    parser.add_argument("--corpus", type=Path, default=CORPUS_DEFECTO)
-    parser.add_argument("--propuestas", type=Path, default=PROPUESTAS_DEFECTO)
-    parser.add_argument("--limite", type=int, default=None, help="importar solo las primeras N filas")
-    args = parser.parse_args()
+def importar_a_bd(corpus: pd.DataFrame, propuestas: pd.DataFrame) -> tuple[int, int]:
+    """Crea `Opinion` y `Requisito` (estado="propuesto") a partir de corpus + propuestas.
 
-    _preparar_django()
-
+    Comparte esta lógica el importador por consola y la subida manual desde
+    la webapp: ambos alimentan la misma cola de validación humana (fase 5).
+    Devuelve (opiniones_creadas, requisitos_creados).
+    """
     from webapp.apps.opiniones.models import Opinion
     from webapp.apps.validacion.models import Requisito
-
-    corpus = pd.read_csv(args.corpus)
-    propuestas = pd.read_csv(args.propuestas, encoding="utf-8-sig")
-    if len(corpus) != len(propuestas):
-        raise SystemExit(
-            f"corpus ({len(corpus)} filas) y propuestas ({len(propuestas)} filas) no coinciden; "
-            "deben venir del mismo `exportar_propuestas` para poder alinearse por índice."
-        )
-
-    if args.limite:
-        corpus = corpus.head(args.limite)
-        propuestas = propuestas.head(args.limite)
 
     creadas_opinion = 0
     creadas_requisito = 0
     for (_, fila_corpus), (_, fila_prop) in zip(corpus.iterrows(), propuestas.iterrows()):
+        fecha_publicacion = pd.to_datetime(fila_corpus.get("fecha_publicacion"), errors="coerce")
         opinion, creada = Opinion.objects.get_or_create(
             texto_original=fila_corpus["texto"],
             autor_anon=fila_corpus.get("id_autor_anonimo", ""),
             defaults={
                 "texto_normalizado": fila_prop.get("texto_normalizado", ""),
-                "fecha_publicacion": pd.to_datetime(fila_corpus.get("fecha_publicacion"), errors="coerce"),
+                "fecha_publicacion": None if pd.isna(fecha_publicacion) else fecha_publicacion,
                 "calificacion": fila_corpus.get("calificacion"),
                 "aplicacion": fila_corpus.get("aplicacion", ""),
                 "fuente": fila_corpus.get("fuente", ""),
@@ -93,6 +78,34 @@ def _cli() -> None:
         )
         if creado_req:
             creadas_requisito += 1
+
+    return creadas_opinion, creadas_requisito
+
+
+def _cli() -> None:
+    parser = argparse.ArgumentParser(
+        description="Importa opiniones + propuestas (zero-shot) a las tablas Opinion/Requisito."
+    )
+    parser.add_argument("--corpus", type=Path, default=CORPUS_DEFECTO)
+    parser.add_argument("--propuestas", type=Path, default=PROPUESTAS_DEFECTO)
+    parser.add_argument("--limite", type=int, default=None, help="importar solo las primeras N filas")
+    args = parser.parse_args()
+
+    _preparar_django()
+
+    corpus = pd.read_csv(args.corpus)
+    propuestas = pd.read_csv(args.propuestas, encoding="utf-8-sig")
+    if len(corpus) != len(propuestas):
+        raise SystemExit(
+            f"corpus ({len(corpus)} filas) y propuestas ({len(propuestas)} filas) no coinciden; "
+            "deben venir del mismo `exportar_propuestas` para poder alinearse por índice."
+        )
+
+    if args.limite:
+        corpus = corpus.head(args.limite)
+        propuestas = propuestas.head(args.limite)
+
+    creadas_opinion, creadas_requisito = importar_a_bd(corpus, propuestas)
 
     print(f"opiniones creadas: {creadas_opinion} (de {len(corpus)} filas procesadas)")
     print(f"requisitos (propuestas) creados: {creadas_requisito}")

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block titulo %}Subir opiniones{% endblock %}
+{% block subtitulo_print %}Subida manual de opiniones{% endblock %}
+{% block nav_corpus %}active{% endblock %}
+
+{% block contenido %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Subir opiniones</h1>
+  <p class="text-gray-500 text-sm mt-1">
+    Sube un archivo .csv o .json con una columna/campo <code class="bg-gray-100 px-1 rounded">texto</code>.
+    Cada opinión pasa por el mismo pipeline (preprocesamiento → representación semántica →
+    clasificador) y queda en la cola de <a href="/validacion/" class="text-blue-600 hover:underline">validación humana</a>.
+  </p>
+</div>
+
+{% if messages %}
+<div class="mb-4 space-y-2">
+  {% for message in messages %}
+  <div class="rounded px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="bg-white rounded-lg shadow p-6 max-w-xl">
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
+    {% csrf_token %}
+    <div>
+      <label for="{{ form.archivo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+        {{ form.archivo.label }}
+      </label>
+      {{ form.archivo }}
+      {% if form.archivo.errors %}
+      <p class="text-red-600 text-xs mt-1">{{ form.archivo.errors.0 }}</p>
+      {% endif %}
+    </div>
+    <button type="submit"
+      class="bg-apklis-600 hover:bg-apklis-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
+      Subir y clasificar
+    </button>
+  </form>
+
+  <div class="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-500">
+    <p class="font-medium text-gray-600 mb-1">Formato esperado</p>
+    <p>Obligatorio: <code class="bg-gray-100 px-1 rounded">texto</code>.</p>
+    <p class="mt-1">
+      Opcionales: <code class="bg-gray-100 px-1 rounded">id_autor_anonimo</code>,
+      <code class="bg-gray-100 px-1 rounded">fecha_publicacion</code>,
+      <code class="bg-gray-100 px-1 rounded">calificacion</code>,
+      <code class="bg-gray-100 px-1 rounded">aplicacion</code>,
+      <code class="bg-gray-100 px-1 rounded">fuente</code>.
+    </p>
+  </div>
+</div>
+{% endblock %}
