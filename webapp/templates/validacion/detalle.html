@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}Validar opinión{% endblock %}
+{% block subtitulo_print %}Validación Humana (Fase 5){% endblock %}
+{% block nav_validacion %}active{% endblock %}
+
+{% block contenido %}
+<a href="/validacion/" class="no-print text-blue-600 hover:underline text-sm">← Volver a la cola</a>
+
+<div class="max-w-2xl mx-auto mt-4">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Opinión original</h2>
+    <p class="text-gray-800 text-lg leading-relaxed mb-4">{{ requisito.opinion.texto_original }}</p>
+
+    {% if requisito.opinion.texto_normalizado %}
+    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Texto normalizado (fase 2)</h3>
+    <p class="text-gray-500 text-sm font-mono mb-4">{{ requisito.opinion.texto_normalizado }}</p>
+    {% endif %}
+
+    <div class="flex gap-4 text-xs text-gray-500 mb-6">
+      <span>Calificación: {{ requisito.opinion.calificacion|default:"—" }}★</span>
+      <span>Aplicación: {{ requisito.opinion.aplicacion|default:"—" }}</span>
+    </div>
+
+    <div class="bg-blue-50 rounded-lg p-4 mb-6">
+      <p class="text-xs text-gray-500 mb-1">Propuesta del clasificador ({{ requisito.get_metodo_display }})</p>
+      <p class="text-2xl font-bold text-blue-700">
+        {{ requisito.etiqueta_propuesta }}
+        <span class="text-sm font-normal text-gray-500">— confianza {{ requisito.confianza|floatformat:2|default:"—" }}</span>
+      </p>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Decisión del especialista</h3>
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        {% for valor, etiqueta in etiquetas %}
+        <button type="submit" name="etiqueta_final" value="{{ valor }}"
+          class="py-3 rounded-lg font-semibold text-sm border-2 transition-colors
+          {% if valor == requisito.etiqueta_propuesta %}
+            border-blue-600 bg-blue-50 text-blue-700 hover:bg-blue-100
+          {% else %}
+            border-gray-200 text-gray-600 hover:bg-gray-50
+          {% endif %}">
+          {{ etiqueta }}
+          {% if valor == requisito.etiqueta_propuesta %}<div class="text-xs font-normal">(propuesta)</div>{% endif %}
+        </button>
+        {% endfor %}
+      </div>
+      <textarea name="notas" rows="2" placeholder="Notas opcionales del especialista…"
+        class="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"></textarea>
+      <p class="text-xs text-gray-400 mt-2">Al pulsar una etiqueta arriba se guarda como decisión final y se marca como validada.</p>
+    </form>
+  </div>
+</div>
+{% endblock %}

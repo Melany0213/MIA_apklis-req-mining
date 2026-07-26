@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block titulo %}Validación{% endblock %}
+{% block subtitulo_print %}Validación Humana (Fase 5){% endblock %}
+{% block nav_validacion %}active{% endblock %}
+
+{% block contenido %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Validación Humana</h1>
+  <p class="text-gray-500 text-sm mt-1">
+    La máquina propone; la persona decide. Ninguna propuesta cuenta como requisito hasta que un
+    especialista la confirma o la corrige aquí.
+  </p>
+</div>
+
+<div class="flex gap-3 mb-6 text-sm">
+  <a href="?estado=propuesto"
+     class="px-4 py-2 rounded-lg {% if estado_actual == 'propuesto' %}bg-blue-700 text-white{% else %}bg-white text-gray-600 shadow{% endif %}">
+    Pendientes ({{ total_propuesto }})
+  </a>
+  <a href="?estado=validado"
+     class="px-4 py-2 rounded-lg {% if estado_actual == 'validado' %}bg-blue-700 text-white{% else %}bg-white text-gray-600 shadow{% endif %}">
+    Validados ({{ total_validado }})
+  </a>
+</div>
+
+{% if requisitos %}
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <table class="min-w-full text-sm">
+    <thead class="bg-blue-800 text-white">
+      <tr>
+        <th class="px-4 py-3 text-left">Opinión</th>
+        <th class="px-4 py-3 text-center">Propuesta</th>
+        <th class="px-4 py-3 text-center">Confianza</th>
+        {% if estado_actual == "validado" %}
+        <th class="px-4 py-3 text-center">Etiqueta final</th>
+        <th class="px-4 py-3 text-left">Validado por</th>
+        {% else %}
+        <th class="px-4 py-3"></th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for r in requisitos %}
+      <tr class="hover:bg-blue-50 transition-colors">
+        <td class="px-4 py-3 text-gray-700 max-w-lg truncate" title="{{ r.opinion.texto_original }}">
+          {{ r.opinion.texto_original }}
+        </td>
+        <td class="px-4 py-3 text-center">
+          {% if r.etiqueta_propuesta == "RF" %}
+            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">RF</span>
+          {% elif r.etiqueta_propuesta == "RNF" %}
+            <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded">RNF</span>
+          {% else %}
+            <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded">Ruido</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-center text-gray-500 text-xs">
+          {{ r.confianza|floatformat:2|default:"—" }}
+        </td>
+        {% if estado_actual == "validado" %}
+        <td class="px-4 py-3 text-center">
+          {% if r.etiqueta_final == "RF" %}
+            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">RF</span>
+          {% elif r.etiqueta_final == "RNF" %}
+            <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded">RNF</span>
+          {% else %}
+            <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded">Ruido</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ r.validado_por|default:"—" }}</td>
+        {% else %}
+        <td class="px-4 py-3 text-right">
+          <a href="/validacion/{{ r.pk }}/" class="text-blue-600 hover:underline text-xs">Revisar →</a>
+        </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if is_paginated %}
+<div class="flex justify-center gap-3 mt-4 text-sm">
+  {% if page_obj.has_previous %}
+    <a href="?estado={{ estado_actual }}&page={{ page_obj.previous_page_number }}" class="text-blue-600 hover:underline">← anterior</a>
+  {% endif %}
+  <span class="text-gray-500">página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a href="?estado={{ estado_actual }}&page={{ page_obj.next_page_number }}" class="text-blue-600 hover:underline">siguiente →</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="bg-white rounded-lg shadow p-12 text-center">
+  <p class="text-4xl mb-4">✅</p>
+  <p class="text-gray-600 font-medium">No hay opiniones en este estado.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -53,6 +53,21 @@ requisitos-apklis/
 └── docs/                     # PROYECTO.md, ARQUITECTURA.md, GLOSARIO.md, bitacora-experimentos.md
 ```
 
+## 2.1 Nomenclatura formal (Tabla 6, Pipes and Filters)
+
+El documento de tesis nombra las mismas 5 fases como capas de un patrón
+arquitectónico Pipes and Filters (Tabla 6). Es la misma secuencia que la
+sección 1; esta tabla es la nomenclatura formal a citar en la defensa, el
+código sigue usando los nombres funcionales de la izquierda.
+
+| Fase (código/docs)                    | Capa (Tabla 6, tesis)                  |
+|----------------------------------------|-----------------------------------------|
+| 1. Extracción                          | Capa 1 — Adquisición y Extracción (Capa de Ingesta) |
+| 2. Preprocesamiento lingüístico        | Capa 2 — Preprocesamiento Lingüístico (Capa de Filtrado) |
+| 3. Representación semántica contextual | Capa 3 — Representación Vectorial (Capa de Incrustación) |
+| 4. Clasificación semántica             | Capa 4 — Clasificación Semántica (Capa Predictiva) |
+| 5. Validación / categorización         | Capa 5 — Categorización de Requisitos (Capa de Formalización) |
+
 ## 3. Modelo de datos (entidades principales)
 
 Diseño orientativo para los modelos de Django. Las etiquetas canónicas son `RF`, `RNF`, `Ruido`.

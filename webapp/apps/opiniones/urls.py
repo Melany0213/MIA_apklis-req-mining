@@ -1,4 +1,9 @@
-﻿from django.urls import path
+from django.urls import path
 
-urlpatterns = []
+from . import views
 
+app_name = "opiniones"
+
+urlpatterns = [
+    path("", views.OpinionListaView.as_view(), name="lista"),
+]
