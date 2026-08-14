@@ -82,6 +82,20 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+REST_FRAMEWORK = {
+    # Sesión de Django (misma autenticación que las vistas HTML) — sin JWT ni
+    # tokens propios: la API comparte el login de /admin/login/.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    # Lectura pública por defecto (igual que las vistas HTML de solo lectura);
+    # los endpoints que mutan datos (clasificar, validar) exigen
+    # IsAuthenticated explícitamente en su vista/acción.
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}
+
 LOGIN_URL = "/admin/login/"
 LOGIN_REDIRECT_URL = "/validacion/"
 

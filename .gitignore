@@ -27,6 +27,10 @@ datos/gold_standard_privado/
 # IDEs
 .vscode/
 .idea/
+.claude/
+
+# Cobertura de pruebas
+.coverage
 
 # Sistema operativo
 .DS_Store

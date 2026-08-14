@@ -15,6 +15,7 @@ import pandas as pd
 from django.conf import settings
 
 from nucleo.clasificacion.zero_shot import ClasificadorZeroShot
+from nucleo.pipeline import Pipeline
 from nucleo.preprocesamiento.lematizador import Lematizador
 from nucleo.representacion.semantica import RepresentadorSemantico
 
@@ -45,6 +46,22 @@ def obtener_componentes() -> ComponentesPipeline:
     clasificador = ClasificadorZeroShot(representador)
 
     return ComponentesPipeline(lematizador, clasificador)
+
+
+@lru_cache(maxsize=1)
+def obtener_pipeline() -> Pipeline:
+    """Crea y prepara el orquestador de fases 2-4 (`nucleo.pipeline.Pipeline`)
+    una sola vez por proceso, para `POST /api/clasificar/`. Usa la propuesta
+    zero-shot (sin `ruta_modelo`), igual que `obtener_componentes` de este
+    mismo módulo — no hay un clasificador entrenado configurado por defecto.
+    """
+    pipeline = Pipeline(
+        modelo_spacy=settings.MODELO_SPACY,
+        modelo_embeddings=settings.MODELO_EMBEDDINGS,
+        semilla=settings.SEMILLA_ALEATORIA,
+    )
+    pipeline.preparar()
+    return pipeline
 
 
 def leer_corpus(archivo) -> pd.DataFrame:

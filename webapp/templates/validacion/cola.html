@@ -21,6 +21,10 @@
      class="px-4 py-2 rounded-lg {% if estado_actual == 'validado' %}bg-blue-700 text-white{% else %}bg-white text-gray-600 shadow{% endif %}">
     Validados ({{ total_validado }})
   </a>
+  <a href="?estado=descartado"
+     class="px-4 py-2 rounded-lg {% if estado_actual == 'descartado' %}bg-blue-700 text-white{% else %}bg-white text-gray-600 shadow{% endif %}">
+    Descartados ({{ total_descartado }})
+  </a>
 </div>
 
 {% if requisitos %}
@@ -31,11 +35,11 @@
         <th class="px-4 py-3 text-left">Opinión</th>
         <th class="px-4 py-3 text-center">Propuesta</th>
         <th class="px-4 py-3 text-center">Confianza</th>
-        {% if estado_actual == "validado" %}
-        <th class="px-4 py-3 text-center">Etiqueta final</th>
-        <th class="px-4 py-3 text-left">Validado por</th>
-        {% else %}
+        {% if estado_actual == "propuesto" %}
         <th class="px-4 py-3"></th>
+        {% else %}
+        <th class="px-4 py-3 text-center">Etiqueta final</th>
+        <th class="px-4 py-3 text-left">{% if estado_actual == "descartado" %}Descartado por{% else %}Validado por{% endif %}</th>
         {% endif %}
       </tr>
     </thead>
@@ -57,21 +61,23 @@
         <td class="px-4 py-3 text-center text-gray-500 text-xs">
           {{ r.confianza|floatformat:2|default:"—" }}
         </td>
-        {% if estado_actual == "validado" %}
+        {% if estado_actual == "propuesto" %}
+        <td class="px-4 py-3 text-right">
+          <a href="/validacion/{{ r.pk }}/" class="text-blue-600 hover:underline text-xs">Revisar →</a>
+        </td>
+        {% else %}
         <td class="px-4 py-3 text-center">
           {% if r.etiqueta_final == "RF" %}
             <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">RF</span>
           {% elif r.etiqueta_final == "RNF" %}
             <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded">RNF</span>
-          {% else %}
+          {% elif r.etiqueta_final == "Ruido" %}
             <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-1 rounded">Ruido</span>
+          {% else %}
+            <span class="text-gray-400 text-xs">— descartada</span>
           {% endif %}
         </td>
         <td class="px-4 py-3 text-gray-500 text-xs">{{ r.validado_por|default:"—" }}</td>
-        {% else %}
-        <td class="px-4 py-3 text-right">
-          <a href="/validacion/{{ r.pk }}/" class="text-blue-600 hover:underline text-xs">Revisar →</a>
-        </td>
         {% endif %}
       </tr>
       {% endfor %}

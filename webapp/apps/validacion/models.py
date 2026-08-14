@@ -18,6 +18,7 @@ METODOS_PROPUESTA = [
 ESTADOS = [
     ("propuesto", "Propuesto"),
     ("validado", "Validado"),
+    ("descartado", "Descartado"),
 ]
 
 
@@ -27,7 +28,12 @@ class Requisito(models.Model):
     La máquina propone `etiqueta_propuesta`; el especialista confirma o
     corrige en `etiqueta_final`. Mientras `estado == "propuesto"` la fila
     está en la cola de validación y `etiqueta_final` no cuenta como resultado
-    aceptado (regla de oro del método, ver CLAUDE.md).
+    aceptado (regla de oro del método, ver CLAUDE.md). Si el especialista
+    determina que la opinión no es aprovechable como requisito (spam, texto
+    ininteligible, duplicado), la descarta: `estado = "descartado"` y
+    `etiqueta_final` queda vacía — no se fuerza a "Ruido", que sigue siendo
+    una etiqueta final válida para opiniones sí evaluadas pero sin contenido
+    de requisito.
     """
 
     opinion = models.OneToOneField(Opinion, on_delete=models.CASCADE, related_name="requisito")

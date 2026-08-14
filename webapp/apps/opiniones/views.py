@@ -1,14 +1,21 @@
+from dataclasses import asdict
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from nucleo.scripts.exportar_propuestas import generar_propuestas
 from nucleo.scripts.importar_opiniones import importar_a_bd
 
 from .forms import SubidaOpinionesForm
 from .models import Opinion
-from .pipeline import ArchivoOpinionesInvalido, leer_corpus, obtener_componentes
+from .pipeline import ArchivoOpinionesInvalido, leer_corpus, obtener_componentes, obtener_pipeline
+from .serializers import OpinionSerializer, PropuestaSerializer
 
 
 class OpinionListaView(ListView):
@@ -55,3 +62,39 @@ def subir(request):
         form = SubidaOpinionesForm()
 
     return render(request, "opiniones/subir.html", {"form": form})
+
+
+class OpinionViewSet(viewsets.ReadOnlyModelViewSet):
+    """`GET /api/opiniones/` — corpus de solo lectura (fase 1), filtrable por `?aplicacion=`."""
+
+    queryset = Opinion.objects.all()
+    serializer_class = OpinionSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        aplicacion = self.request.query_params.get("aplicacion")
+        if aplicacion:
+            queryset = queryset.filter(aplicacion=aplicacion)
+        return queryset
+
+
+class ClasificarAPIView(APIView):
+    """`POST /api/clasificar/` — clasifica una lista de textos con el mismo
+    orquestador de fases 2-4 (`nucleo.pipeline.Pipeline`) y devuelve las
+    propuestas sin persistirlas: ninguna clasificación se auto-aprueba
+    (regla de oro del método, ver CLAUDE.md); la validación humana sigue
+    ocurriendo solo en `/validacion/` o `POST /api/requisitos/{id}/validar/`.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        opiniones = request.data.get("opiniones")
+        if not isinstance(opiniones, list) or not opiniones:
+            return Response(
+                {"detail": "El campo 'opiniones' debe ser una lista no vacía de textos."},
+                status=400,
+            )
+
+        propuestas = obtener_pipeline().ejecutar(opiniones)
+        return Response(PropuestaSerializer(propuestas, many=True).data)

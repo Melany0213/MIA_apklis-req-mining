@@ -3,10 +3,20 @@ import csv
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import DetailView, ListView
+from rest_framework import viewsets
 
 from .models import CorridaEvaluacion
+from .serializers import CorridaEvaluacionSerializer
 
 ETIQUETAS = ["RF", "RNF", "Ruido"]
+
+
+class CorridaEvaluacionViewSet(viewsets.ReadOnlyModelViewSet):
+    """`GET /api/evaluacion/` — métricas de las corridas registradas (comparación
+    semántico vs. TF-IDF), igual que `CorridaListaView` pero en JSON."""
+
+    queryset = CorridaEvaluacion.objects.all()
+    serializer_class = CorridaEvaluacionSerializer
 
 
 class CorridaListaView(ListView):

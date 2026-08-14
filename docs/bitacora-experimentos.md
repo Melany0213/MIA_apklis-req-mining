@@ -218,3 +218,142 @@ Plantilla de entrada:
   congelar v1 como conjunto de prueba definitivo.
 
 ---
+
+## 2026-08-01 — Redundancia del catálogo de candidatos: TF-IDF vs. semántico
+
+- **Objetivo:** cuantificar la redundancia (opiniones distintas que en
+  realidad piden lo mismo) dentro de los requisitos candidatos, comparando la
+  representación TF-IDF contra la semántica contextual — otro argumento a
+  favor de la hipótesis central, además de precisión/recall/F1.
+- **Script:** `nucleo/evaluacion/redundancia.py` (nuevo, independiente del
+  pipeline; reutiliza el vectorizador TF-IDF ya ajustado en
+  `datos/modelos/tfidf_logreg.joblib` y el mismo modelo Sentence-Transformers
+  `paraphrase-multilingual-MiniLM-L12-v2` del resto del proyecto). Pruebas en
+  `tests/test_evaluacion_redundancia.py`.
+- **Datos:** los candidatos son las filas de `gold_standard_v1.csv` con
+  `etiqueta_final` en {RF, RNF} — **83 opiniones** (37 RF + 46 RNF), sin
+  Ruido. `id_opinion` es la posición de fila en ese CSV (no hay id propio).
+- **Método:** para cada representación, `AgglomerativeClustering(metric=
+  'cosine', linkage='average', n_clusters=None)` barriendo
+  `distance_threshold` de 0.10 a 0.60 (paso 0.05). Tasa de redundancia =
+  `1 - grupos/83`.
+- **Resultados (tabla completa en
+  `datos/gold_standard_privado/redundancia_umbrales.csv`):**
+
+  | umbral | grupos TF-IDF | tasa TF-IDF | grupos semántico | tasa semántico |
+  |--------|---------------|-------------|------------------|-----------------|
+  | 0.10   | 83            | 0.0000      | 81               | 0.0241          |
+  | 0.15   | 83            | 0.0000      | 73               | 0.1205          |
+  | 0.20   | 83            | 0.0000      | 63               | 0.2410          |
+  | 0.25   | 83            | 0.0000      | 58               | 0.3012          |
+  | 0.30   | 83            | 0.0000      | 51               | 0.3855          |
+  | 0.35   | 81            | 0.0241      | 44               | 0.4699          |
+  | 0.40   | 79            | 0.0482      | 36               | 0.5663          |
+  | 0.45   | 79            | 0.0482      | 26               | 0.6867          |
+  | 0.50   | 78            | 0.0602      | 20               | 0.7590          |
+  | 0.55   | 75            | 0.0964      | 15               | 0.8193          |
+  | 0.60   | 73            | 0.1205      | 11               | 0.8675          |
+
+  Similitud de coseno media entre pares: TF-IDF 0.0494, semántico 0.3729
+  (los vectores TF-IDF son casi ortogonales entre sí incluso para
+  paráfrasis, por la dispersión léxica del corpus).
+- **Umbral operativo elegido: 0.30.** Es el punto donde TF-IDF todavía no
+  detecta ninguna redundancia (tasa 0.0000, sigue viendo 83 candidatos
+  únicos) mientras el semántico ya agrupa un 38.55% del catálogo (51 grupos).
+  Se inspeccionó manualmente el fichero exportado en ese umbral
+  (`datos/gold_standard_privado/redundancia_grupos_semantico.txt`) y los
+  grupos formados son parafraseos genuinos del mismo requisito (p. ej. "no me
+  deja abrir" / "no me deja descargarla" / "no me deja descargar"; "es muy
+  eficaz" / "muy eficiente" / "buena y eficiente") y no candidatos distintos
+  fundidos por error. Un umbral menor detecta muy poca redundancia real; uno
+  mayor (≥0.40) empieza a fusionar quejas de rendimiento distintas (lentitud,
+  cierres, errores de pago) en el mismo grupo, lo que sería sobre-fusión.
+- **A ese umbral (0.30):** tasa de redundancia TF-IDF = **0.0000** (83
+  grupos), tasa de redundancia semántico = **0.3855** (51 grupos). El
+  semántico revela redundancia oculta para el léxico que TF-IDF no puede ver.
+- **Agrupamiento manual de referencia:** no se ha construido todavía; el
+  script acepta `--agrupamiento-manual <csv con id_opinion,id_grupo>` y
+  calcula automáticamente índice de Rand ajustado, homogeneidad y
+  completitud de cada representación contra él cuando se le pase uno.
+- **Conclusión:** a un umbral conservador (0.30), la representación semántica
+  ya detecta redundancia sustancial e interpretable en el catálogo de
+  candidatos que la línea base TF-IDF no ve en absoluto — evidencia adicional
+  a favor de la hipótesis central de la tesis.
+- **Pendiente:** (1) decidir si se construye un agrupamiento manual de
+  referencia (costoso: requiere revisar 83×82/2 pares o al menos los grupos
+  candidatos) para poder reportar ARI/homogeneidad/completitud reales en la
+  tesis; (2) si se amplía el gold standard, repetir el barrido para ver si
+  0.30 se mantiene como punto de equilibrio.
+
+---
+
+## 2026-08-02 — Orquestador `nucleo/pipeline.py`, estado "descartado" y API REST mínima
+
+- **Objetivo:** cerrar tres huecos entre lo documentado (CLAUDE.md,
+  `docs/PROYECTO.md`, `docs/ARQUITECTURA.md`) y lo implementado: (1) el
+  método no se podía invocar como un solo objeto sin pasar por scripts CLI;
+  (2) la fase 5 no tenía forma de descartar una opinión no aprovechable sin
+  forzarla a "Ruido"; (3) los endpoints REST de `docs/ARQUITECTURA.md` §4
+  eran solo diseño orientativo, nunca código. Plan completo en
+  `elegant-wondering-yeti.md` (histórico de la sesión).
+- **Fase 1 — `nucleo/pipeline.py`:** `Pipeline.preparar()`/`ejecutar()`
+  implementados de verdad (antes `NotImplementedError`). Preprocesa
+  (`nucleo.preprocesamiento.preprocesar`), representa y clasifica una lista
+  de opiniones. Sin `ruta_modelo`, `metodo="semantico"` cae a
+  `ClasificadorZeroShot` (sin entrenar); `metodo="tfidf"` exige un
+  clasificador ya entrenado (`ruta_modelo` a un `.joblib` de
+  `nucleo.clasificacion.{tfidf_logreg,semantico_logreg}`) porque TF-IDF
+  necesita un vocabulario ajustado de antemano — no se inventó un
+  "TF-IDF zero-shot". `Propuesta.metodo` se amplió a
+  `Literal["zero_shot", "semantico", "tfidf"]` para usar el mismo vocabulario
+  que `Requisito.METODOS_PROPUESTA`. Pruebas en `tests/test_pipeline.py` (6
+  casos, dobles de prueba, sin cargar spaCy/embeddings reales).
+- **Fase 2 — estado "descartado":** `Requisito.ESTADOS` gana
+  `("descartado", "Descartado")` (migración
+  `0002_alter_requisito_estado.py`). Nueva vista `descartar` (
+  `webapp/apps/validacion/views.py`), URL `<pk>/descartar/`, pestaña y
+  columna condicional en `cola.html`, botón en `detalle.html`. Un requisito
+  descartado deja `etiqueta_final` vacío (no se fuerza a ninguna de las 3
+  etiquetas — "Ruido" sigue siendo una etiqueta final válida para opiniones
+  sí evaluadas). Se extrajo `_registrar_decision()` para no duplicar la
+  lógica de guardado entre `validar`, `descartar` y la acción `validar` de
+  la API. Pruebas en `tests/test_validacion_descartar.py` (3 casos).
+- **Fase 3 — API REST (DRF):** implementados los 5 endpoints de
+  `docs/ARQUITECTURA.md` §4: `GET /api/opiniones/` (filtrable por
+  `?aplicacion=`), `POST /api/clasificar/`, `GET /api/requisitos/?estado=`,
+  `POST /api/requisitos/{id}/validar/`, `GET /api/evaluacion/`. Dos ajustes
+  de seguridad respecto al texto orientativo original: `POST
+  /api/clasificar/` usa el `Pipeline` de la fase 1 (vía
+  `webapp/apps/opiniones/pipeline.py::obtener_pipeline`, cacheado por
+  proceso) y no persiste nada — devuelve propuestas, igual que exige la
+  regla de oro del método; `POST /api/requisitos/{id}/validar/` exige sesión
+  autenticada (`IsAuthenticated`), igual que la vista web equivalente. Nuevo
+  bloque `REST_FRAMEWORK` en `webapp/config/settings.py`
+  (`SessionAuthentication` + `AllowAny` por defecto, permisos más
+  restrictivos declarados por vista). Cada app registra su router DRF en su
+  propio `urls.py` (`api_urlpatterns`); `webapp/config/urls.py` los agrupa
+  bajo `/api/`. Pruebas en `tests/test_api_{opiniones,clasificar,validacion,
+  evaluacion}.py` (10 casos, `rest_framework.test.APIClient`).
+- **Fuera de alcance (decisión explícita):** no se tocó la fusión
+  `Requisito`/`Clasificacion` (ya decidida el 2026-07-07), no se creó un
+  modelo `Aplicacion` propio (implicaría migrar `Opinion.aplicacion` de
+  `CharField` a FK con backfill), no se implementaron roles de usuario
+  (`usuarios` app sigue vacía) ni management commands de Django (los scripts
+  de `nucleo/scripts/*.py` ya cubren ese rol vía `python -m`).
+- **Resultados:** suite completa en verde, `pytest -q` →
+  **80 passed** (61 previas de la sesión + 19 nuevas de esta entrega:
+  6 pipeline + 3 descartar + 10 API), sin regresiones. `python webapp/manage.py
+  check` sin errores.
+- **Conclusión:** el método ya se puede invocar como un solo objeto
+  (`Pipeline`) sin depender de la capa web, la fase 5 distingue "descartado"
+  de "Ruido" tal como describe `docs/PROYECTO.md`, y la API REST documentada
+  en `docs/ARQUITECTURA.md` es código real y probado, no solo diseño.
+- **Pendiente:** (1) decidir si `POST /api/clasificar/` debe poder recibir
+  `ruta_modelo`/usar un clasificador entrenado en vez de zero-shot siempre;
+  (2) roles de usuario reales para diferenciar permisos de validación de los
+  de solo lectura en la API (hoy cualquier usuario autenticado puede validar
+  o descartar); (3) documentar los nuevos endpoints en un lugar visible para
+  quien continúe el prototipo (hoy solo están en el código y en esta
+  entrada).
+
+---
