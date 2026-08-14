@@ -36,7 +36,7 @@
         <th class="px-4 py-3 text-center">Propuesta</th>
         <th class="px-4 py-3 text-center">Confianza</th>
         {% if estado_actual == "propuesto" %}
-        <th class="px-4 py-3"></th>
+        <th class="px-4 py-3 text-center">Clasificación</th>
         {% else %}
         <th class="px-4 py-3 text-center">Etiqueta final</th>
         <th class="px-4 py-3 text-left">{% if estado_actual == "descartado" %}Descartado por{% else %}Validado por{% endif %}</th>
@@ -47,7 +47,11 @@
       {% for r in requisitos %}
       <tr class="hover:bg-blue-50 transition-colors">
         <td class="px-4 py-3 text-gray-700 max-w-lg truncate" title="{{ r.opinion.texto_original }}">
-          {{ r.opinion.texto_original }}
+          {% if estado_actual == "propuesto" %}
+            <a href="{% url 'validacion:validar' r.pk %}" class="hover:underline hover:text-blue-700">{{ r.opinion.texto_original }}</a>
+          {% else %}
+            {{ r.opinion.texto_original }}
+          {% endif %}
         </td>
         <td class="px-4 py-3 text-center">
           {% if r.etiqueta_propuesta == "RF" %}
@@ -62,8 +66,22 @@
           {{ r.confianza|floatformat:2|default:"—" }}
         </td>
         {% if estado_actual == "propuesto" %}
-        <td class="px-4 py-3 text-right">
-          <a href="/validacion/{{ r.pk }}/" class="text-blue-600 hover:underline text-xs">Revisar →</a>
+        <td class="px-4 py-3">
+          <form method="post" action="{% url 'validacion:validar' r.pk %}" class="flex justify-center gap-1">
+            {% csrf_token %}
+            <button type="submit" name="etiqueta_final" value="RF"
+              class="px-2.5 py-1 rounded text-xs font-semibold border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
+              RF
+            </button>
+            <button type="submit" name="etiqueta_final" value="RNF"
+              class="px-2.5 py-1 rounded text-xs font-semibold border border-purple-200 text-purple-700 hover:bg-purple-100 transition-colors">
+              RNF
+            </button>
+            <button type="submit" name="etiqueta_final" value="Ruido"
+              class="px-2.5 py-1 rounded text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">
+              Ruido
+            </button>
+          </form>
         </td>
         {% else %}
         <td class="px-4 py-3 text-center">
