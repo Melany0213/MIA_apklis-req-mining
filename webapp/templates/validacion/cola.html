@@ -21,10 +21,6 @@
      class="px-4 py-2 rounded-lg {% if estado_actual == 'validado' %}bg-blue-700 text-white{% else %}bg-white text-gray-600 shadow{% endif %}">
     Validados ({{ total_validado }})
   </a>
-  <a href="?estado=descartado"
-     class="px-4 py-2 rounded-lg {% if estado_actual == 'descartado' %}bg-blue-700 text-white{% else %}bg-white text-gray-600 shadow{% endif %}">
-    Descartados ({{ total_descartado }})
-  </a>
 </div>
 
 {% if requisitos %}

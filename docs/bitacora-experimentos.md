@@ -357,3 +357,52 @@ Plantilla de entrada:
   entrada).
 
 ---
+
+## 2026-08-14 — Validación humana completa del lote importado (498 opiniones)
+
+- **Objetivo:** completar la fase 5 sobre las 498 opiniones importadas en
+  `/validacion/` (distintas del gold standard v1), de cara a una presentación
+  con la cola de pendientes en cero.
+- **Método:** la especialista (autora) tomó **todas** las decisiones de
+  etiqueta final, opinión por opinión — RF/RNF/Ruido o descartar. Para
+  agilizar el mecanismo (no el criterio), se apoyó en asistencia de Claude
+  Code para: extraer lotes de opiniones pendientes de la base de datos,
+  aplicar sus decisiones ya tomadas, y señalar de forma automática patrones
+  de "elogio corto sin señal" (candidatos claros a Ruido) para que la
+  especialista confirmara en bloque en vez de leer cada uno. Ningún texto se
+  clasificó sin que la especialista diera la etiqueta explícitamente; se
+  rechazó explícitamente una primera petición de auto-validar el lote
+  completo sin revisión, por violar la regla de oro del método (ver
+  CLAUDE.md, "la máquina propone, la persona decide").
+- **Hallazgo de proceso:** una auditoría automática sobre las filas ya
+  validadas (buscando el mismo patrón "elogio corto sin señal" pero
+  etiquetado RF/RNF) encontró 5 casos de error de captura (misclicks o,
+  en un caso, un error propio al probar la API con datos reales): id 346
+  ("excelente, muchas gracias"), 174, 157, 212 y 481 — todas corregidas a
+  Ruido tras confirmarlo. Vale la pena repetir este tipo de auditoría después
+  de cualquier sesión de validación rápida.
+- **Criterios aplicados:** ver la nueva sección "Criterios operativos de
+  validación (fase 5)" en `docs/GLOSARIO.md` — resume las reglas que se
+  fueron fijando en esta sesión (palabras de atributo de calidad → RNF
+  aunque sean elogio; quejas de lentitud sin culpar a la red → RNF; pedidos
+  de más apps en el catálogo → Ruido; fallos funcionales concretos aunque el
+  texto sea corto → RF; texto sin sentido o con PII incidental → descartar,
+  no Ruido).
+- **Resultados:** de 498 filas — **497 validadas, 1 descartada** (la
+  descartada es de una prueba manual anterior, no de este lote). Distribución
+  de `etiqueta_final`: Ruido 464 (93.2%), RF 27 (5.4%), RNF 6 (1.2%) —
+  proporción de Ruido más alta que en el gold standard v1 (83.4%), esperable
+  porque este lote no pasó por el muestreo estratificado por calificación del
+  gold standard.
+- **Conclusión:** cola de `/validacion/` en cero real (no simulado). El
+  botón de la pestaña "Descartados" se quitó de `cola.html` por tener un solo
+  caso no representativo — la funcionalidad de descartar sigue intacta
+  (modelo, vista, API), solo no tiene su propio enlace de navegación por
+  ahora.
+- **Pendiente:** (1) revisar si el criterio "más apps en el catálogo → Ruido"
+  se sostiene si aparece con más frecuencia en corpus futuros; (2) refinar el
+  diccionario DNJL con los patrones de jerga/errores vistos en este lote
+  (pendiente, se trabajará gradualmente); (3) decidir si se re-agrega un
+  enlace a "Descartados" en la interfaz cuando haya más casos reales.
+
+---
