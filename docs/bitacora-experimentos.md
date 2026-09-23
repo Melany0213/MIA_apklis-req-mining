@@ -406,3 +406,172 @@ Plantilla de entrada:
   enlace a "Descartados" en la interfaz cuando haya más casos reales.
 
 ---
+
+## 2026-08-19 — Fase 0 de escalado: auditoría del estado actual + red de seguridad
+
+- **Objetivo:** antes de escalar el prototipo, (1) documentar lo que el
+  código realmente hace hoy (no lo declarado), (2) fijar un experimento
+  reproducible de referencia, (3) cubrir con pruebas lo que aún no estaba
+  cubierto, (4) automatizar las pruebas en cada push, (5) anclar versiones
+  exactas de dependencias. **No se cambió comportamiento del método** — todo
+  lo de esta entrada es documentación, scripts, pruebas e infraestructura.
+- **`docs/ARQUITECTURA_ACTUAL.md` (nuevo):** mapa módulo por módulo con la
+  responsabilidad real de cada archivo de `nucleo/` y `webapp/`, diagrama
+  Mermaid del flujo de datos, lista explícita de todo lo acoplado a Apklis/
+  apps móviles (URLs y campos de `extraccion/apklis.py`, prototipos de
+  `zero_shot.py`, branding `apklis-*` en las plantillas), y tabla de
+  dependencias con versión exacta. Hallazgos que quedaron anotados ahí
+  (no corregidos en esta fase, son decisiones de fases futuras):
+  - `Lematizador.MODELO_DEFECTO="es_core_news_sm"` no coincide con el
+    `MODELO_SPACY="es_core_news_md"` que usan `webapp/config/settings.py` y
+    `nucleo/pipeline.py` — hay que tener ambos modelos descargados o unificar.
+  - `requirements-lock.txt` traía `-e d:\proyectos\mia` (ruta absoluta de
+    esta máquina) — corregido en esta misma entrada (ver más abajo).
+  - `files (1).zip` commiteado en la raíz del repo (copia vieja de los docs
+    de contexto) — ruido, no se borró sin confirmarlo primero.
+  - Pie de página de `base.html` dice "Python 3.14 · Django 6", CLAUDE.md
+    fija Python 3.12 — texto de UI incorrecto, sin efecto en runtime.
+  - App `usuarios` sigue vacía: no hay roles reales, cualquier usuario
+    autenticado puede validar/descartar vía la API (ya sabido, ver entrada
+    2026-08-02).
+- **`scripts/baseline.py` (nuevo):** reproduce el experimento principal de la
+  tesis end-to-end (entrena TF-IDF+LogReg y semántico+LogReg sobre
+  `datos/gold_standard_privado/gold_standard_v1.csv`, mismo split que
+  `nucleo/clasificacion/{tfidf_logreg,semantico_logreg}`, semilla 42 fija) y
+  añade la tasa de redundancia (umbral 0.30, ya justificado en la entrada
+  2026-08-01) de cada representación. Escribe `resultados/baseline_v1.json`.
+  Corrida real:
+  - TF-IDF + LogReg: precisión 0.8886, recall 0.8300, F1 0.8477, redundancia
+    0.0000 (83 grupos de 83 candidatos).
+  - Semántico + LogReg: precisión 0.9121, recall 0.9000, F1 0.9050,
+    redundancia 0.3855 (51 grupos de 83 candidatos).
+  Cifras consistentes con las ya registradas en la entrada 2026-07-07 (mismo
+  gold standard, misma semilla) — sirve como corrida de referencia
+  reproducible con un solo comando, no un experimento nuevo.
+- **Pruebas nuevas:**
+  - `tests/test_preprocesamiento.py` — 5 casos borde añadidos a
+    `preprocesar()`: texto vacío, solo espacios, solo signos de puntuación
+    (spaCy descarta los tokens de puntuación → cadena vacía, no error), todo
+    en mayúsculas (con DNJL de por medio) y solo emoji.
+  - `tests/test_clasificacion_zero_shot_modelo_real.py` (nuevo) — a
+    diferencia de `test_clasificacion_zero_shot.py` (dobles de prueba, rápido
+    y determinista), esta prueba carga el modelo real de embeddings y el
+    diccionario `PROTOTIPOS` de producción, y confirma que 6 opiniones
+    inequívocas (2 por clase) se clasifican como se espera. Requiere el
+    modelo cacheado localmente (ya lo estaba). El DNJL ya tenía cobertura
+    completa (los 15 términos, límites de palabra, mayúsculas, frase
+    completa) desde la entrada 2026-07-04 — no hizo falta añadir nada ahí.
+  - Total: 74 pruebas de `nucleo/` + `scripts/` en verde sin tocar la base de
+    datos (no se corrió la suite completa con Postgres en esta sesión; las
+    pruebas de la API/validación que sí requieren DB no se tocaron y se
+    dejan a cargo de la nueva CI, que sí levanta Postgres).
+- **`.github/workflows/tests.yml` (nuevo):** corre `pytest` en cada push y
+  pull request — servicio Postgres 16, spaCy `es_core_news_sm` descargado en
+  el job, caché de pip y del caché de Hugging Face/spaCy para no repetir la
+  descarga de ~500MB (torch + el modelo de embeddings) en cada corrida.
+- **Dependencias:** `requirements-lock.txt` ya estaba anclado a versión
+  exacta (era la única rota por la ruta absoluta, ya corregida); se replicó
+  el mismo anclaje en `pyproject.toml` (antes con mínimos `>=`), para que la
+  instalación normal (`pip install -e .`) y la reproducible
+  (`pip install -r requirements-lock.txt`) queden consistentes.
+- **Conclusión:** el método (`nucleo/`) está mejor probado y documentado de
+  lo que sugería `docs/ARQUITECTURA.md` (que es la versión aspiracional) —
+  las 5 fases funcionan de extremo a extremo y ya tenían una suite
+  razonable; el trabajo de esta fase fue cerrar huecos puntuales (casos
+  borde de preprocesamiento, el clasificador con el modelo real, CI,
+  reproducibilidad de dependencias) y dejar por escrito, con nombres de
+  archivo y línea, todo lo acoplado a Apklis para la fase de generalización
+  que sigue.
+- **Pendiente:** (1) decidir qué hacer con la inconsistencia
+  `es_core_news_sm` vs. `es_core_news_md`; (2) limpiar `files (1).zip`
+  (pedir confirmación antes de borrar); (3) corregir el pie de página con la
+  versión de Python; (4) cuando se generalice el dominio (fuera de Apklis),
+  los puntos de `docs/ARQUITECTURA_ACTUAL.md` §4 son la lista de partida.
+
+---
+
+## 2026-08-19 — Cierre del punto 1 de la Fase 0: modelo de spaCy unificado y límite de procedencia del gold standard documentado
+
+- **Objetivo:** resolver el punto bloqueante detectado en el cierre de la Fase 0
+  (entrada anterior, "Pendiente" (1)): `nucleo/pipeline.py` y
+  `webapp/config/settings.py` declaraban su propio default de spaCy
+  (`"es_core_news_md"`), distinto del de `nucleo/preprocesamiento/lematizador.py`
+  (`"es_core_news_sm"`) — y `es_core_news_md` nunca estuvo instalado en este
+  proyecto. Cualquier código que dependiera de ese default sin anularlo
+  explícitamente habría fallado con `OSError [E050]` en un entorno limpio.
+- **Investigación (antes de cambiar nada, como se pidió):**
+  - Se confirmó con `spacy validate` que `es_core_news_sm` es, y siempre ha sido en
+    este entorno, el único modelo de spaCy instalado.
+  - Se rastreó el valor *efectivo* (no el declarado) de cada punto de entrada:
+    `nucleo/pipeline.py` → `Pipeline()` sin argumentos habría fallado (nunca se
+    ejercitó "en limpio": los tests que usan `Pipeline()` monkeypatchean
+    `_crear_lematizador`); la webapp (`obtener_componentes()`/`obtener_pipeline()`)
+    resuelve `es_core_news_sm` en la práctica porque el `.env` real fija
+    `MODELO_SPACY=es_core_news_sm`, sobrescribiendo el default divergente de
+    `settings.py`; `nucleo/scripts/exportar_propuestas.py` sin `--modelo-spacy` cae
+    también en `es_core_news_sm` (fallback a `Lematizador()` sin argumentos).
+  - Se determinó que **ni `nucleo/scripts/registrar_corrida.py`** (el script que
+    generó los F1 originales de la tesis: TF-IDF 0.8477, semántico 0.9050, entrada
+    2026-07-07) **ni `scripts/baseline.py` invocan spaCy en absoluto** — ambos leen
+    directamente la columna `texto_normalizado` ya congelada en
+    `gold_standard_v1.csv`. Por tanto la inconsistencia de defaults **no contaminó**
+    ninguna métrica ya registrada, y `baseline_v1.json` se mantiene válido sin
+    regenerar — el experimento comparativo sm/md quedó cancelado por esta misma
+    razón (no hay nada que comparar: `baseline.py` no relematiza).
+- **Corrección aplicada:**
+  - `nucleo/preprocesamiento/lematizador.py` (`MODELO_DEFECTO = "es_core_news_sm"`)
+    queda como única fuente de verdad. `nucleo/pipeline.py` y
+    `webapp/config/settings.py` ahora lo **reexportan** (`from
+    nucleo.preprocesamiento.lematizador import MODELO_DEFECTO as ...`) en vez de
+    declarar su propio literal — ya no hay dos defaults que puedan divergir.
+  - `.env.example`: `MODELO_SPACY` corregido a `es_core_news_sm` (antes decía
+    `es_core_news_md`, incorrecto), con comentario explicando por qué no cambiarlo
+    sin documentarlo.
+  - Pruebas nuevas: `tests/test_pipeline_modelo_real.py` (marcada
+    `@pytest.mark.modelo_real`, registrada en `pyproject.toml`) instancia
+    `Pipeline()` **sin monkeypatch**, con spaCy y el modelo de embeddings reales, y
+    confirma que procesa una opinión de extremo a extremo — es la prueba que habría
+    detectado el `OSError [E050]` original, que ningún test anterior podía ver
+    porque todos evitaban cargar spaCy real. `tests/test_config_modelo_spacy.py`
+    falla si `nucleo.pipeline.MODELO_SPACY_DEFECTO` o el default de
+    `webapp/config/settings.py` vuelven a divergir del de `lematizador.py`, y si
+    `MODELO_SPACY` en el entorno real apunta a otro modelo sin documentarlo.
+- **Límite de procedencia del gold standard (no se pudo resolver, es un límite de
+  los datos, no del código — documentado también en
+  `docs/ARQUITECTURA_ACTUAL.md` §7):**
+  - La columna `texto_normalizado` de `gold_standard_v1.csv` está congelada desde
+    el **2026-07-04** y se generó con `nucleo/scripts/exportar_propuestas.py`
+    (bitácora, entrada "Gold standard v1").
+  - **No consta registro del comando exacto que se ejecutó, del modelo de spaCy
+    empleado ni de la versión del DNJL vigente esa fecha.** No hay bitácora de
+    comandos, ni notebook, ni entrada de git con esa granularidad (el historial de
+    git de este repo está en commits grandes y posteriores a las fechas de la
+    bitácora, así que tampoco sirve como prueba cronológica).
+  - **La evidencia disponible apunta a `es_core_news_sm`** (único modelo instalado
+    en este proyecto en cualquier momento verificable, único fallback del script
+    sin `--modelo-spacy`, valor fijado en el `.env` real) **sin ninguna evidencia a
+    favor de `es_core_news_md`.** No es prueba irrefutable — no se puede descartar
+    al 100% que se haya usado e instalado `md` puntualmente y luego desinstalado
+    sin dejar rastro.
+  - **Los resultados de la tesis son reproducibles a partir de `texto_normalizado`**
+    (`scripts/baseline.py` lo demuestra: semilla fija, mismo split, mismas cifras
+    que la corrida original) — **pero la columna `texto_normalizado` en sí no es
+    reproducible desde `texto_original`** con el código actual, porque no quedó
+    registrada la configuración exacta con la que se generó.
+  - **Consecuencia práctica:** cualquier corpus que se genere de ahora en adelante
+    debe registrar su procedencia completa junto al CSV (comando, modelo de spaCy
+    efectivo, fecha) — este es el requisito que motiva la siguiente tarea
+    (metadatos de `exportar_propuestas.py`).
+- **Conclusión:** el punto bloqueante queda cerrado — ya no hay defaults de spaCy
+  divergentes en el código, hay una prueba que lo garantiza, y la limitación real
+  (procedencia no registrada del gold standard) queda documentada explícitamente
+  en vez de asumida o escondida. `baseline_v1.json` no se tocó: sigue siendo la
+  línea base válida de la tesis.
+- **Pendiente:** (1) decidir si vale la pena reconstruir manualmente, con la
+  especialista, una muestra de `texto_normalizado` a partir de `texto_original`
+  con `es_core_news_sm` actual y comparar contra lo congelado, como evidencia
+  indirecta adicional (no seguro que valga el esfuerzo); (2) los pendientes ya
+  anotados en la entrada anterior (limpiar `files (1).zip`, pie de página con
+  versión de Python) siguen abiertos, no se tocaron en esta entrada.
+
+---
