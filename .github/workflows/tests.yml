@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+env:
+  MODELO_SPACY: es_core_news_sm
+  MODELO_EMBEDDINGS: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+
 jobs:
   pytest:
     runs-on: ubuntu-latest
@@ -36,32 +40,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 3.14 es la versión con la que se congeló requirements-lock.txt y con
+      # la que se obtuvieron las métricas de la tesis: CI debe correr sobre
+      # ese mismo entorno, no sobre uno parecido.
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements-lock.txt
 
-      - name: Cachear paquetes de pip
+      - name: Cachear el modelo de embeddings
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('requirements-lock.txt') }}
+          path: ~/.cache/huggingface
+          key: hf-${{ env.MODELO_EMBEDDINGS }}
 
-      - name: Cachear modelos de PLN (spaCy + Sentence-Transformers)
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/huggingface
-            ~/.local/lib/python3.12/site-packages/es_core_news_sm
-          key: modelos-pln-${{ runner.os }}-es_core_news_sm-minilm-l12-v2
+      # torch en variante CPU: el runner no tiene GPU y las ruedas CUDA son
+      # ~2 GB de descarga inútil. Va antes del lock para que pip lo dé por
+      # satisfecho y no traiga la versión con CUDA desde PyPI.
+      - name: Instalar torch (CPU)
+        run: pip install torch==2.12.1 --index-url https://download.pytorch.org/whl/cpu
 
       - name: Instalar dependencias
         run: |
           pip install --upgrade pip
           pip install -r requirements-lock.txt
-          pip install -e .
 
-      - name: Descargar modelo de spaCy (es_core_news_sm)
-        run: python -m spacy download es_core_news_sm
+      - name: Descargar modelo de spaCy
+        run: python -m spacy download "$MODELO_SPACY"
+
+      # Imprescindible: `RepresentadorSemantico.cargar()` fuerza
+      # HF_HUB_OFFLINE=1, así que durante las pruebas NO se puede descargar
+      # nada. El modelo tiene que estar en la caché antes de llamar a pytest.
+      - name: Descargar modelo de embeddings
+        run: >-
+          python -c "import os; from sentence_transformers import SentenceTransformer;
+          SentenceTransformer(os.environ['MODELO_EMBEDDINGS'])"
 
       - name: Ejecutar pruebas (pytest)
         run: pytest
