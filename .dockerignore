@@ -1,0 +1,27 @@
+# Todo lo que no debe entrar en la imagen (peso, secretos o datos privados).
+.git
+.github
+.venv
+.claude
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.coverage
+notebooks
+staticfiles
+
+# Secretos reales: las credenciales del despliegue llegan por variables de
+# entorno del Space, nunca dentro de la imagen.
+.env
+
+# Datos sensibles: el corpus crudo y el gold standard NO salen de la máquina
+# local (ver .gitignore y las restricciones de privacidad del proyecto).
+datos/corpus_crudo
+datos/gold_standard_privado
+datos/modelos
+modelos
+resultados
+
+# Ruido heredado del repositorio
+files (1).zip

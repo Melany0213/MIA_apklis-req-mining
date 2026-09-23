@@ -575,3 +575,66 @@ Plantilla de entrada:
   versión de Python) siguen abiertos, no se tocaron en esta entrada.
 
 ---
+
+## 2026-09-22 — Despliegue del prototipo (imagen Docker + entorno gestionado)
+
+- **Objetivo:** poner en línea el prototipo **tal como está hoy**, para poder
+  enseñarlo y seguir construyendo encima, sin tocar el método. Nada de esta
+  entrada cambia `nucleo/`, el pipeline ni ninguna métrica: es
+  infraestructura, configuración y documentación.
+- **Decisión de encuadre (importante para la defensa):** el despliegue
+  gratuito (Hugging Face Spaces + PostgreSQL gestionado en Neon) es un
+  **espejo de demostración**, no el despliegue objetivo. El objetivo sigue
+  siendo un servidor nacional sin dependencias de nube extranjera
+  (`docs/PROYECTO.md` §1, `docs/ARQUITECTURA.md` §6). Lo que sí se preserva en
+  ambos casos: solo software libre, modelos abiertos y **clasificación sin
+  salida a internet** (los modelos van horneados en la imagen, porque
+  `RepresentadorSemantico.cargar()` fuerza `HF_HUB_OFFLINE=1`).
+- **Qué NO se despliega:** el corpus crudo y el gold standard se quedan en la
+  máquina local — `.dockerignore` replica las exclusiones del `.gitignore`. El
+  sistema arranca con `datos/ejemplos/opiniones_ejemplo.csv` (4 opiniones) y
+  se alimenta subiendo archivos desde el navegador. Es una decisión de
+  privacidad, no de comodidad: las opiniones están anonimizadas por HMAC, pero
+  el texto libre puede contener PII escrita por el propio autor.
+- **Cambios en configuración** (`webapp/config/settings.py`, todos aditivos y
+  con el comportamiento local intacto):
+  - `DATABASE_URL` opcional, traducida por el nuevo `webapp/config/bd.py`; si
+    no está, siguen mandando las variables `DB_*` de siempre. El traductor
+    **exige TLS** (`sslmode=require`) cuando el host no es local y la URL no
+    dice otra cosa.
+  - WhiteNoise para servir estáticos sin Nginx delante.
+  - `DJANGO_DETRAS_DE_PROXY` activa `SECURE_PROXY_SSL_HEADER`, redirección a
+    HTTPS y cookies seguras. HSTS queda deliberadamente apagado: en un dominio
+    compartido (`*.hf.space`) la cabecera afectaría a sitios de terceros.
+    `manage.py check --deploy` pasa sin avisos salvo ese HSTS consciente.
+- **Arranque idempotente** (`entrypoint.sh` + dos comandos de gestión nuevos):
+  `migrate` → `asegurar_admin` (crea el usuario validador desde el entorno; no
+  pisa una contraseña cambiada a mano) → `sembrar_demo` (siembra **solo si la
+  base está vacía**, pasando el corpus por el mismo pipeline de fases 2-4 que
+  la subida manual, y dejándolo todo en estado `propuesto` — el despliegue no
+  simula validaciones humanas que no ocurrieron) → gunicorn con
+  `--timeout 300`, porque la primera clasificación carga spaCy y los
+  embeddings en memoria.
+- **Pruebas nuevas:** `tests/test_despliegue.py` (13 casos) cubre el traductor
+  de `DATABASE_URL` (incluido el TLS obligatorio en host remoto y las claves
+  con caracteres codificados), la idempotencia de `asegurar_admin` y que
+  `sembrar_demo` no duplique el corpus en cada reinicio. Suite completa:
+  **113 en verde**.
+- **CI arreglada (fallaba desde su primer push):** el workflow cacheaba
+  `~/.cache/huggingface` pero nunca descargaba el modelo de embeddings, y
+  `cargar()` fuerza el modo sin conexión — en un runner limpio las dos pruebas
+  `modelo_real` no podían pasar. Se añadió el paso de descarga previa. De paso:
+  Python **3.14** (la versión con la que se congeló `requirements-lock.txt` y
+  se obtuvieron las métricas; el workflow decía 3.12) y torch en variante CPU,
+  para no traer ~2 GB de ruedas CUDA inútiles en un runner sin GPU.
+- **Inconsistencia detectada, sin resolver:** `CLAUDE.md` fija Python 3.12 como
+  stack, pero el entorno real de trabajo —y el que produjo las métricas— es
+  **3.14**. El `Dockerfile` y la CI siguen al entorno real, no al documento. Hay
+  que decidir cuál es la versión oficial de la tesis y corregir el otro lado.
+- **Pendiente:** (1) construir y probar la imagen (no hay Docker en la máquina
+  de desarrollo, el `Dockerfile` está escrito pero sin ejecutar ni una vez);
+  (2) compilar Tailwind en local — hoy entra por CDN y la interfaz necesita
+  internet aunque el método no; (3) siguen abiertos los pendientes previos
+  (`files (1).zip`, roles de usuario).
+
+---

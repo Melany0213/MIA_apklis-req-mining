@@ -21,6 +21,9 @@ dependencies = [
     "djangorestframework==3.17.1",
     "python-decouple==3.8",
     "psycopg2-binary==2.9.12",
+    # Sirve los estáticos desde el propio proceso en el despliegue de
+    # demostración (no hay Nginx delante). Ver Dockerfile.
+    "whitenoise==6.12.0",
     # Utilidades
     "requests==2.34.2",
 ]

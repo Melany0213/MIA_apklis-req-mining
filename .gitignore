@@ -12,6 +12,7 @@ build/
 *.log
 local_settings.py
 db.sqlite3
+staticfiles/
 
 # Variables de entorno (nunca versionar secretos reales)
 .env
