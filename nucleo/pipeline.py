@@ -25,6 +25,7 @@ import joblib
 
 from nucleo.clasificacion.zero_shot import ClasificadorZeroShot
 from nucleo.preprocesamiento import preprocesar
+from nucleo.preprocesamiento.lematizador import MODELO_DEFECTO as MODELO_SPACY_DEFECTO
 from nucleo.preprocesamiento.lematizador import Lematizador
 from nucleo.representacion.semantica import RepresentadorSemantico
 
@@ -32,7 +33,9 @@ Etiqueta = Literal["RF", "RNF", "Ruido"]
 MetodoRepresentacion = Literal["semantico", "tfidf"]
 MetodoPropuesta = Literal["zero_shot", "semantico", "tfidf"]
 
-MODELO_SPACY_DEFECTO = "es_core_news_md"
+# Reexportado desde nucleo.preprocesamiento.lematizador: es la única fuente de
+# verdad del modelo de spaCy por defecto (ver esa Fase 0 en la bitácora — un
+# default divergente aquí llegó a apuntar a un modelo nunca instalado).
 MODELO_SEMANTICO_DEFECTO = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 

@@ -4,6 +4,8 @@ from pathlib import Path
 
 from decouple import Csv, config
 
+from nucleo.preprocesamiento.lematizador import MODELO_DEFECTO as _MODELO_SPACY_DEFECTO
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = config("DJANGO_SECRET_KEY")
@@ -102,8 +104,10 @@ LOGIN_REDIRECT_URL = "/validacion/"
 # Semilla aleatoria para reproducibilidad de experimentos
 SEMILLA_ALEATORIA: int = config("SEMILLA_ALEATORIA", default=42, cast=int)
 
-# Rutas de modelos PLN
-MODELO_SPACY: str = config("MODELO_SPACY", default="es_core_news_md")
+# Rutas de modelos PLN. El default de MODELO_SPACY viene de
+# nucleo.preprocesamiento.lematizador (única fuente de verdad, ver Fase 0 en
+# la bitácora): no lo dupliques aquí con un valor distinto.
+MODELO_SPACY: str = config("MODELO_SPACY", default=_MODELO_SPACY_DEFECTO)
 MODELO_EMBEDDINGS: str = config(
     "MODELO_EMBEDDINGS",
     default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
