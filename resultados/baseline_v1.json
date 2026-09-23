@@ -1,0 +1,108 @@
+{
+  "fecha": "2026-08-19T16:23:31.163425+00:00",
+  "dataset": "gold_standard_v1.csv",
+  "n_total": 500,
+  "semilla": 42,
+  "tam_prueba": 0.2,
+  "n_train": 400,
+  "n_test": 100,
+  "modelo_semantico": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "resultados": {
+    "tfidf": {
+      "precision_global": 0.8886,
+      "recall_global": 0.83,
+      "f1_global": 0.8477,
+      "metricas_por_clase": {
+        "RF": {
+          "precision": 0.6667,
+          "recall": 0.5714,
+          "f1": 0.6154,
+          "soporte": 7
+        },
+        "RNF": {
+          "precision": 0.4,
+          "recall": 0.8889,
+          "f1": 0.5517,
+          "soporte": 9
+        },
+        "Ruido": {
+          "precision": 0.9595,
+          "recall": 0.8452,
+          "f1": 0.8987,
+          "soporte": 84
+        }
+      },
+      "matriz_confusion": [
+        [
+          4,
+          1,
+          2
+        ],
+        [
+          0,
+          8,
+          1
+        ],
+        [
+          2,
+          11,
+          71
+        ]
+      ],
+      "redundancia": {
+        "umbral": 0.3,
+        "grupos": 83,
+        "total_candidatos": 83,
+        "tasa_redundancia": 0.0
+      }
+    },
+    "semantico": {
+      "precision_global": 0.9121,
+      "recall_global": 0.9,
+      "f1_global": 0.905,
+      "metricas_por_clase": {
+        "RF": {
+          "precision": 0.5556,
+          "recall": 0.7143,
+          "f1": 0.625,
+          "soporte": 7
+        },
+        "RNF": {
+          "precision": 0.6,
+          "recall": 0.6667,
+          "f1": 0.6316,
+          "soporte": 9
+        },
+        "Ruido": {
+          "precision": 0.9753,
+          "recall": 0.9405,
+          "f1": 0.9576,
+          "soporte": 84
+        }
+      },
+      "matriz_confusion": [
+        [
+          5,
+          2,
+          0
+        ],
+        [
+          1,
+          6,
+          2
+        ],
+        [
+          3,
+          2,
+          79
+        ]
+      ],
+      "redundancia": {
+        "umbral": 0.3,
+        "grupos": 51,
+        "total_candidatos": 83,
+        "tasa_redundancia": 0.3855
+      }
+    }
+  }
+}

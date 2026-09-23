@@ -9,32 +9,35 @@ description = "Método de identificación de requisitos desde opiniones de usuar
 requires-python = ">=3.12"
 dependencies = [
     # PLN / ML
-    "spacy>=3.8",
-    "sentence-transformers>=3.0",
-    "transformers>=4.44",
-    "scikit-learn>=1.5",
-    "numpy>=2.0",
-    "scipy>=1.14",
-    "pandas>=2.2",
+    "spacy==3.8.13",
+    "sentence-transformers==5.6.0",
+    "transformers==5.12.1",
+    "scikit-learn==1.9.0",
+    "numpy==2.5.0",
+    "scipy==1.18.0",
+    "pandas==3.0.3",
     # Web
-    "django>=5.1",
-    "djangorestframework>=3.15",
-    "python-decouple>=3.8",
-    "psycopg2-binary>=2.9",
+    "django==6.0.6",
+    "djangorestframework==3.17.1",
+    "python-decouple==3.8",
+    "psycopg2-binary==2.9.12",
     # Utilidades
-    "requests>=2.32",
+    "requests==2.34.2",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.2",
-    "pytest-django>=4.8",
-    "pytest-cov>=5.0",
+    "pytest==9.1.1",
+    "pytest-django==4.12.0",
+    "pytest-cov==7.1.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 DJANGO_SETTINGS_MODULE = "webapp.config.settings"
+markers = [
+    "modelo_real: carga spaCy y/o el modelo de embeddings reales (sin dobles de prueba); excluir con -m 'not modelo_real' si hace falta, pero debe correr en CI por defecto.",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]

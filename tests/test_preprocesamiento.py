@@ -101,3 +101,30 @@ def test_preprocesar_encadena_limpieza_y_lematizacion(lematizador: Lematizador) 
     assert "@pepe" not in resultado
     assert "http" not in resultado
     assert resultado == resultado.lower()
+
+
+def test_preprocesar_texto_vacio_no_falla(lematizador: Lematizador) -> None:
+    assert preprocesar("", lematizador) == ""
+
+
+def test_preprocesar_solo_espacios_no_falla(lematizador: Lematizador) -> None:
+    assert preprocesar("   ", lematizador) == ""
+
+
+def test_preprocesar_solo_signos_de_puntuacion(lematizador: Lematizador) -> None:
+    # La lematización descarta los tokens de puntuación (`t.is_punct`), así que
+    # una opinión sin ninguna palabra debe terminar en cadena vacía, no fallar.
+    assert preprocesar("¡¡¡???...!!!", lematizador) == ""
+
+
+def test_preprocesar_texto_todo_en_mayusculas(lematizador: Lematizador) -> None:
+    resultado = preprocesar("XQ NO PINCHA ESTA APLICACION, ES MUY MALA", lematizador)
+    assert resultado == resultado.lower()
+    assert "porque" in resultado  # "XQ" -> DNJL -> "porque", pese a estar en mayúsculas
+    assert resultado != ""
+
+
+def test_preprocesar_solo_emoji(lematizador: Lematizador) -> None:
+    # limpiar_texto conserva emojis (aportan señal), pero spaCy no les asigna
+    # lema como palabra: no debe fallar, aunque el resultado quede vacío.
+    preprocesar("😀😀😀", lematizador)

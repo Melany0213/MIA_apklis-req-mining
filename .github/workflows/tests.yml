@@ -1,0 +1,67 @@
+name: Pruebas
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mia_user
+          POSTGRES_PASSWORD: mia_password_ci
+          POSTGRES_DB: mia_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DJANGO_SECRET_KEY: clave-secreta-solo-para-ci-no-usar-en-produccion
+      DJANGO_DEBUG: "False"
+      DB_NAME: mia_db
+      DB_USER: mia_user
+      DB_PASSWORD: mia_password_ci
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      SEMILLA_ALEATORIA: "42"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cachear paquetes de pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements-lock.txt') }}
+
+      - name: Cachear modelos de PLN (spaCy + Sentence-Transformers)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.local/lib/python3.12/site-packages/es_core_news_sm
+          key: modelos-pln-${{ runner.os }}-es_core_news_sm-minilm-l12-v2
+
+      - name: Instalar dependencias
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-lock.txt
+          pip install -e .
+
+      - name: Descargar modelo de spaCy (es_core_news_sm)
+        run: python -m spacy download es_core_news_sm
+
+      - name: Ejecutar pruebas (pytest)
+        run: pytest

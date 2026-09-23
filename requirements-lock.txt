@@ -28,8 +28,9 @@ joblib==1.5.3
 markdown-it-py==4.2.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
-# Editable install with no version control (mia==0.1.0)
--e d:\proyectos\mia
+# Paquete propio del proyecto (mia==0.1.0), instalación editable relativa al
+# repositorio — evita rutas absolutas embebidas (ver CLAUDE.md).
+-e .
 mpmath==1.3.0
 murmurhash==1.0.15
 narwhals==2.22.1
