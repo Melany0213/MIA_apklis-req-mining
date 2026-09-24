@@ -47,12 +47,20 @@ variables `DB_*` de siempre (entorno local) — ver [webapp/config/bd.py](../web
 1. Crear un Space en <https://huggingface.co/new-space> con **SDK: Docker** y visibilidad
    **privada** (la cola de validación exige login, pero el corpus y las métricas serían
    visibles en un Space público).
-2. Añadir el Space como remoto y empujar el repositorio:
+2. Crear un token de escritura en <https://huggingface.co/settings/tokens>
+   (tipo *Write*). Hugging Face no acepta contraseña de cuenta por git: cuando el push
+   pida credenciales, el usuario es el nombre de usuario de HF y la **contraseña es el
+   token**.
+3. Añadir el Space como remoto y empujar el repositorio:
 
    ```bash
    git remote add space https://huggingface.co/spaces/<usuario>/<nombre-del-space>
    git push space main
    ```
+
+   Va el historial completo, no solo el último commit. Está comprobado que ningún commit
+   del repositorio contiene el corpus crudo, el gold standard ni el `.env` (siempre
+   estuvieron en `.gitignore`), así que el historial es publicable tal cual.
 
    El `README.md` de la raíz lleva la cabecera YAML que HF necesita (`sdk: docker`,
    `app_port: 7860`); no borrarla.
@@ -110,6 +118,19 @@ docker run --rm -p 7860:7860 \
 Luego abrir <http://localhost:7860/>. La construcción descarga torch y los modelos: la
 primera vez tarda y ocupa unos 3 GB.
 
+## Estado de verificación
+
+| Comprobado | Cómo |
+|---|---|
+| Las 81 dependencias ancladas tienen rueda para Python 3.14 en Linux x86_64 | consulta a PyPI y al índice CPU de PyTorch, 2026-09-23 |
+| El historial de git no contiene datos privados ni archivos pesados | `git log --all` sobre las rutas sensibles |
+| La suite completa pasa (113 pruebas) y la CI está en verde | `pytest`, GitHub Actions |
+| `manage.py check --deploy` sin avisos (salvo HSTS, apagado a propósito) | ejecución local |
+
+**No comprobado todavía:** la imagen Docker nunca se ha construido (no hay Docker en la
+máquina de desarrollo). El primer `docker build` —o la primera construcción del Space—
+es la verificación que falta.
+
 ## Limitaciones conocidas
 
 - **El Space gratuito se duerme** tras 48 h sin visitas; la primera petición después
@@ -122,4 +143,4 @@ primera vez tarda y ocupa unos 3 GB.
 - **Sin roles de usuario todavía.** Cualquier usuario autenticado puede validar o
   descartar (la app `usuarios/` está vacía, ver `docs/ARQUITECTURA_ACTUAL.md` §2).
 - **Un solo worker** de gunicorn por defecto: cada worker carga su propia copia de los
-  modelos en memoria. Subir `WEB_CONCURRENCY` solo si hay RAM de sobra.
+  modelos en memoria. Subir `WEB_CONCURRENCY` solo si hay RAM de sobra.      
