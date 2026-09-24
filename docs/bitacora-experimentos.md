@@ -664,3 +664,13 @@ Plantilla de entrada:
     se reescriben.
 - **Verificación:** 113 pruebas en verde tras reinstalar el paquete con el nombre nuevo.
 - **Pendiente para la autora:** renombrar el repositorio en GitHub y actualizar el remoto.
+- **Identidad visual (mismo día):** el isotipo es un globo de diálogo —la opinión— con
+  el eco a ambos lados; la C y la O del logotipo son los mismos arcos, para que la marca
+  y el nombre cuenten lo mismo. Se descartó una primera versión de ondas radiando a un
+  solo lado porque se leía como un icono de wifi genérico: decía "emite señal", no
+  "escucha" ni "eco". Los archivos (SVG para la aplicación, PNG para el documento de
+  tesis) **no se editan a mano**: los genera `scripts/marca.py`, que trae su propio
+  rasterizador sin dependencias — la marca queda tan reproducible como los experimentos.
+  Efecto secundario que hubo que resolver: al servir estáticos propios con manifiesto,
+  `pytest` pasaba a depender de haber corrido `collectstatic`; `tests/conftest.py` lo
+  aísla para que la suite siga siendo independiente del despliegue.

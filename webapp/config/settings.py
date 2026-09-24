@@ -102,6 +102,8 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Estaticos propios (marca). Los genera scripts/marca.py, no se editan a mano.
+STATICFILES_DIRS = [BASE_DIR / "webapp" / "static"]
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},

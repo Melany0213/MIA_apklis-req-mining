@@ -9,6 +9,10 @@ pinned: false
 short_description: ECO escucha las opiniones de Apklis y propone requisitos RF/RNF con validación humana
 ---
 
+<p align="center">
+  <img src="docs/marca/eco-logotipo-980.png" alt="ECO — Escucha Colectiva de Opiniones" width="340">
+</p>
+
 # ECO — Escucha Colectiva de Opiniones
 
 **ECO** es el prototipo que implementa el *método de identificación de requisitos desde
@@ -81,6 +85,14 @@ El procedimiento completo —incluido qué datos **no** salen de la máquina loc
 | [docs/ARQUITECTURA_ACTUAL.md](docs/ARQUITECTURA_ACTUAL.md) | Lo que el código hace **hoy**, módulo por módulo |
 | [docs/bitacora-experimentos.md](docs/bitacora-experimentos.md) | Bitácora de experimentos y decisiones |
 | [docs/GLOSARIO.md](docs/GLOSARIO.md) | Términos del dominio |
+| [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) | Cómo poner el prototipo en línea |
+
+## Marca
+
+El isotipo —un globo de diálogo (la opinión) con el eco a ambos lados— y el logotipo viven
+en `webapp/static/img/` (SVG, los que usa la aplicación) y en `docs/marca/` (PNG, para el
+documento de tesis). **No se editan a mano:** los genera `python scripts/marca.py`, así que
+cambiar un color o una proporción es cambiar un parámetro y volver a ejecutarlo.
 
 ## Restricciones del proyecto
 

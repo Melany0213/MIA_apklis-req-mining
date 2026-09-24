@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="ECO, Escucha Colectiva de Opiniones">
+  <title>ECO — Escucha Colectiva de Opiniones</title>
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a3a6e"/>
+      <stop offset="1" stop-color="#2563c4"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#fondo)"/>
+  <path d="M 348.35 137.80 A 150 150 0 0 1 348.35 374.20" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round"/>
+  <path d="M 163.65 374.20 A 150 150 0 0 1 163.65 137.80" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round"/>
+  <path d="M 390.21 84.21 A 218 218 0 0 1 390.21 427.79" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 121.79 427.79 A 218 218 0 0 1 121.79 84.21" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round" opacity="0.5"/>
+  <rect x="194" y="196" width="124" height="90" rx="26" fill="#ffffff"/>
+  <path d="M 220 274 L 210 324 L 262 278 Z" fill="#ffffff"/>
+</svg>
