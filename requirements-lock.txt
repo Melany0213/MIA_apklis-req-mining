@@ -28,7 +28,7 @@ joblib==1.5.3
 markdown-it-py==4.2.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
-# Paquete propio del proyecto (mia==0.1.0), instalación editable relativa al
+# Paquete propio del proyecto (eco==0.1.0), instalación editable relativa al
 # repositorio — evita rutas absolutas embebidas (ver CLAUDE.md).
 -e .
 mpmath==1.3.0

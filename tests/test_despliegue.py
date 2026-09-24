@@ -15,14 +15,14 @@ from django.core.management import call_command
 from webapp.apps.opiniones.models import Opinion
 from webapp.config.bd import URLBaseDatosInvalida, desde_url
 
-URL_GESTIONADA = "postgresql://usuario:clave@ep-demo-123.neon.tech:5432/mia_db"
+URL_GESTIONADA = "postgresql://usuario:clave@ep-demo-123.neon.tech:5432/eco_db"
 
 
 def test_url_gestionada_se_traduce_a_la_config_de_django():
     config = desde_url(URL_GESTIONADA)
 
     assert config["ENGINE"] == "django.db.backends.postgresql"
-    assert config["NAME"] == "mia_db"
+    assert config["NAME"] == "eco_db"
     assert config["USER"] == "usuario"
     assert config["PASSWORD"] == "clave"
     assert config["HOST"] == "ep-demo-123.neon.tech"
@@ -35,7 +35,7 @@ def test_host_remoto_exige_tls_aunque_la_url_no_lo_diga():
 
 
 def test_host_local_no_exige_tls():
-    config = desde_url("postgresql://mia_user:clave@localhost:5432/mia_db")
+    config = desde_url("postgresql://eco_user:clave@localhost:5432/eco_db")
 
     assert config["OPTIONS"]["sslmode"] == "disable"
 
@@ -48,7 +48,7 @@ def test_sslmode_explicito_de_la_url_manda():
 
 def test_credenciales_con_caracteres_codificados():
     """Las claves generadas por los proveedores traen @, / y : codificados."""
-    config = desde_url("postgresql://usuario:cl%40ve%2Frara@host.neon.tech/mia_db")
+    config = desde_url("postgresql://usuario:cl%40ve%2Frara@host.neon.tech/eco_db")
 
     assert config["PASSWORD"] == "cl@ve/rara"
     assert config["PORT"] == "5432"
@@ -57,9 +57,9 @@ def test_credenciales_con_caracteres_codificados():
 @pytest.mark.parametrize(
     "url",
     [
-        "mysql://usuario:clave@host/mia_db",
+        "mysql://usuario:clave@host/eco_db",
         "postgresql://usuario:clave@host/",
-        "postgresql:///mia_db",
+        "postgresql:///eco_db",
         "",
     ],
 )

@@ -6,6 +6,10 @@ import hashlib
 import hmac
 import os
 
+# El prefijo MIA_ de la variable de entorno y esta sal por defecto conservan su nombre
+# histórico a propósito, aunque el prototipo pasara a llamarse ECO: cambiar cualquiera de
+# los dos cambiaría TODOS los hashes de autor y rompería la continuidad con el corpus ya
+# extraído (las opiniones de un mismo autor dejarían de agruparse).
 _SAL_POR_DEFECTO = "mia-tesis-uci-sal-no-reversible"
 
 

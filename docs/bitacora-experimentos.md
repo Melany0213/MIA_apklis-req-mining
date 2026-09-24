@@ -638,3 +638,29 @@ Plantilla de entrada:
   (`files (1).zip`, roles de usuario).
 
 ---
+
+## 2026-09-23 — El prototipo pasa a llamarse ECO
+
+- **Decisión:** el prototipo web se llama **ECO (Escucha Colectiva de Opiniones)**. Hasta
+  hoy convivían tres nombres —`MIA_apklis-req-mining` en el repositorio, `mia` como
+  paquete y "Requisitos desde Apklis" en la interfaz— y el Space de despliegue obliga a
+  fijar uno antes de publicar, porque queda en la URL.
+- **Por qué no seguir con MIA:** "MIA" son también las siglas de *Maestría en Informática
+  Avanzada*, el propio grado de esta tesis; el documento acabaría diciendo "la tesis de MIA
+  presenta a MIA". Además MIA nombraba al **método**, no a la aplicación.
+- **Distinción que hay que mantener en el documento:** "el método" son las 5 fases (la
+  contribución científica); **ECO** es el prototipo que lo implementa y lo demuestra. No son
+  sinónimos. Anotado también en `docs/GLOSARIO.md` y en `CLAUDE.md`.
+- **Qué cambió:** interfaz (título, encabezado de impresión y logotipo), `pyproject.toml`
+  (`name = "eco"`), User-Agent del cliente de Apklis (`ECO-tesis-UCI/0.1`, así se identifica
+  ante la tienda), nombres por defecto de base de datos y usuario (`eco_db`/`eco_user`) en
+  settings, `.env.example` y CI, y el README (que además es la portada del Space).
+- **Qué NO cambió, a propósito:**
+  - `MIA_SAL_ANONIMIZACION` y la sal por defecto `mia-tesis-uci-sal-no-reversible`:
+    cambiarlas alteraría **todos** los hashes de autor y rompería la continuidad con el
+    corpus ya extraído. El nombre histórico queda documentado en el propio módulo.
+  - La paleta Tailwind `apklis-*`: son los colores de marca de Apklis, no del prototipo.
+  - La carpeta local de trabajo y las entradas antiguas de esta bitácora: son historia, no
+    se reescriben.
+- **Verificación:** 113 pruebas en verde tras reinstalar el paquete con el nombre nuevo.
+- **Pendiente para la autora:** renombrar el repositorio en GitHub y actualizar el remoto.

@@ -17,7 +17,7 @@ import requests
 
 URL_BASE = "https://api.apklis.cu/"
 AGENTE_USUARIO_DEFECTO = (
-    "MIA-tesis-UCI/0.1 "
+    "ECO-tesis-UCI/0.1 "
     "(investigacion academica - identificacion de requisitos desde opiniones; "
     "extraccion respetuosa con espera entre peticiones)"
 )

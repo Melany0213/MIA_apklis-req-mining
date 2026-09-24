@@ -1,17 +1,21 @@
 ---
-title: MIA — Requisitos desde opiniones
-emoji: 📝
+title: ECO — Requisitos desde opiniones
+emoji: 🔊
 colorFrom: blue
 colorTo: indigo
 sdk: docker
 app_port: 7860
 pinned: false
-short_description: Clasifica opiniones de Apklis en RF, RNF y Ruido con validación humana
+short_description: ECO escucha las opiniones de Apklis y propone requisitos RF/RNF con validación humana
 ---
 
-# MIA — Método de identificación de requisitos desde opiniones de usuarios
+# ECO — Escucha Colectiva de Opiniones
 
-Prototipo de tesis de Maestría en Informática Avanzada (UCI). Dado un conjunto de
+**ECO** es el prototipo que implementa el *método de identificación de requisitos desde
+opiniones de usuarios*: devuelve, en forma de requisitos, el eco de lo que dice la
+multitud de usuarios de una tienda de aplicaciones.
+
+Proyecto de tesis de Maestría en Informática Avanzada (UCI). Dado un conjunto de
 opiniones de usuarios de **Apklis** (tienda nacional cubana de aplicaciones), clasifica
 cada opinión como **Requisito Funcional (RF)**, **Requisito No Funcional (RNF)** o
 **Ruido** mediante representación semántica contextual, con **validación humana

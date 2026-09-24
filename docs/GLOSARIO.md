@@ -2,6 +2,10 @@
 
 Usa siempre los términos canónicos. No introduzcas sinónimos en el código ni en la interfaz.
 
+- **ECO (Escucha Colectiva de Opiniones):** nombre del prototipo web que implementa el
+  método. Es el nombre que debe usarse en la interfaz, el repositorio y el documento de
+  tesis cuando se habla de *la aplicación*; cuando se habla de *el método* (las 5 fases),
+  se dice "el método", no "ECO".
 - **RF (Requisito Funcional):** algo que la aplicación debe hacer (p. ej., "permitir subir varias
   fotos a la vez").
 - **RNF (Requisito No Funcional):** atributo de calidad sobre *cómo* se comporta la aplicación

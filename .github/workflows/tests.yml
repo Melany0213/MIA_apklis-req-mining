@@ -16,9 +16,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: mia_user
-          POSTGRES_PASSWORD: mia_password_ci
-          POSTGRES_DB: mia_db
+          POSTGRES_USER: eco_user
+          POSTGRES_PASSWORD: eco_password_ci
+          POSTGRES_DB: eco_db
         ports:
           - 5432:5432
         options: >-
@@ -30,9 +30,9 @@ jobs:
     env:
       DJANGO_SECRET_KEY: clave-secreta-solo-para-ci-no-usar-en-produccion
       DJANGO_DEBUG: "False"
-      DB_NAME: mia_db
-      DB_USER: mia_user
-      DB_PASSWORD: mia_password_ci
+      DB_NAME: eco_db
+      DB_USER: eco_user
+      DB_PASSWORD: eco_password_ci
       DB_HOST: localhost
       DB_PORT: "5432"
       SEMILLA_ALEATORIA: "42"

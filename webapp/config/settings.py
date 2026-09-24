@@ -80,8 +80,8 @@ DATABASES = {
     if _DATABASE_URL
     else {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME", default="mia_db"),
-        "USER": config("DB_USER", default="mia_user"),
+        "NAME": config("DB_NAME", default="eco_db"),
+        "USER": config("DB_USER", default="eco_user"),
         "PASSWORD": config("DB_PASSWORD", default=""),
         "HOST": config("DB_HOST", default="localhost"),
         "PORT": config("DB_PORT", default="5432"),

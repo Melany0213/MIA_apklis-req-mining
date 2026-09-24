@@ -9,6 +9,10 @@
 Tesis de Maestría en Informática Avanzada (UCI). Es a la vez **una contribución científica
 (el método)** y **un prototipo funcional (la aplicación web)** que lo demuestra.
 
+El prototipo se llama **ECO (Escucha Colectiva de Opiniones)**. Usa ese nombre en la
+interfaz, el README y los documentos cuando hables de *la aplicación*; para *el método*
+(las 5 fases) di "el método", no "ECO".
+
 **Objetivo:** dado un conjunto de opiniones de usuarios de una tienda nacional de aplicaciones
 (Apklis), clasificar automáticamente cada opinión como **Requisito Funcional (RF)**,
 **Requisito No Funcional (RNF)** o **Ruido**, usando **representación semántica contextual**,

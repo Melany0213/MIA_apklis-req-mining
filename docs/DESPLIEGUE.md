@@ -105,14 +105,14 @@ reconozca el HTTPS del proxy. Sin él, validar desde el navegador falla por CSRF
 ## Probar la imagen en local antes de subirla
 
 ```bash
-docker build -t mia .
+docker build -t eco .
 docker run --rm -p 7860:7860 \
   -e DJANGO_SECRET_KEY=clave-de-prueba \
-  -e DATABASE_URL='postgresql://mia_user:clave@host.docker.internal:5432/mia_db' \
+  -e DATABASE_URL='postgresql://eco_user:clave@host.docker.internal:5432/eco_db' \
   -e DJANGO_ALLOWED_HOSTS=localhost \
   -e DJANGO_SUPERUSER_USERNAME=especialista \
   -e DJANGO_SUPERUSER_PASSWORD=clave-de-prueba \
-  mia
+  eco
 ```
 
 Luego abrir <http://localhost:7860/>. La construcción descarga torch y los modelos: la
