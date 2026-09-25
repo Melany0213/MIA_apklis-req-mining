@@ -35,3 +35,12 @@ def test_lista_opiniones_filtra_por_aplicacion(api_client):
     assert respuesta.status_code == 200
     assert len(respuesta.data) == 1
     assert respuesta.data[0]["texto_original"] == "opinión de Apklis"
+
+
+@pytest.mark.django_db
+def test_la_raiz_lleva_al_corpus(client):
+    """Quien abre el enlace sin conocer las rutas no debe ver un 404."""
+    respuesta = client.get("/")
+
+    assert respuesta.status_code == 302
+    assert respuesta.url == "/corpus/"

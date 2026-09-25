@@ -679,3 +679,32 @@ Plantilla de entrada:
   resolver: al servir estáticos propios con manifiesto, `pytest` pasaba a depender de haber
   corrido `collectstatic`; `tests/conftest.py` lo aísla para que la suite siga siendo
   independiente del despliegue.
+
+## 2026-09-25 — Despliegue provisional desde la máquina de la autora
+
+- **Por qué cambia el plan:** Hugging Face dejó de ofrecer Spaces de Docker en el plan
+  gratuito (solo *Static*, que no ejecuta nada). El despliegue en un servidor propio queda
+  pendiente de una cuenta de Oracle Cloud; mientras tanto, ECO se enseña ejecutándolo en la
+  máquina de la autora y publicándolo con un túnel.
+- **Alcance honesto de esta solución:** sirve para enseñar el sistema en vivo (reunión,
+  entrevista, defensa). **No** sirve como enlace permanente: la URL cambia en cada sesión y
+  depende de que el ordenador esté encendido. En el CV va el repositorio, no el túnel.
+- **`scripts/servir_local.py` (nuevo):** arranca la aplicación con **waitress** —el
+  `runserver` de Django es de desarrollo y atiende de uno en uno; gunicorn, el del
+  contenedor, no funciona en Windows—, escuchando solo en `127.0.0.1`. Antes de arrancar
+  comprueba la configuración y se niega a exponer la aplicación si falta algo: `DEBUG` activo
+  de cara a internet, el dominio del túnel ausente de `ALLOWED_HOSTS`, el origen ausente de
+  `CSRF_TRUSTED_ORIGINS` o el proxy sin declarar. Los tres últimos fallan en caliente de
+  formas mudas (página que no carga, validación rechazada sin explicación), así que se
+  detectan antes y con un mensaje que dice qué falta. 8 pruebas en
+  `tests/test_servir_local.py`.
+- **Fallo encontrado al verificar de extremo a extremo:** la raíz `/` devolvía **404** — no
+  había ninguna ruta en la raíz del proyecto. Cualquiera que abriese el enlace compartido
+  aterrizaba en una página de error. Ahora redirige al corpus, con prueba que lo fija.
+- **Verificación:** servidor arrancado de verdad y comprobadas las rutas `/corpus/`,
+  `/evaluacion/`, `/validacion/` y `/api/opiniones/` (todas 200, con el logotipo sirviéndose
+  desde los estáticos). Suite completa: **122 pruebas en verde**.
+- **Pendiente:** el despliegue permanente (Oracle Cloud o un servidor de la UCI, que sería lo
+  coherente con el marco de soberanía tecnológica de la tesis). Todo lo preparado para el
+  contenedor —`Dockerfile`, `entrypoint.sh`, `DATABASE_URL`, secretos— sigue siendo válido
+  para cualquiera de los dos.

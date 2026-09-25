@@ -24,6 +24,9 @@ dependencies = [
     # Sirve los estáticos desde el propio proceso en el despliegue de
     # demostración (no hay Nginx delante). Ver Dockerfile.
     "whitenoise==6.12.0",
+    # Servidor WSGI para servir ECO desde una maquina Windows (gunicorn,
+    # el del contenedor, no funciona ahi). Ver scripts/servir_local.py.
+    "waitress==3.0.2",
     # Utilidades
     "requests==2.34.2",
 ]

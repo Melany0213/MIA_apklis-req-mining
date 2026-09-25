@@ -131,6 +131,50 @@ primera vez tarda y ocupa unos 3 GB.
 máquina de desarrollo). El primer `docker build` —o la primera construcción del Space—
 es la verificación que falta.
 
+## Despliegue temporal desde tu PC (lo que se usa hoy)
+
+Mientras no haya servidor propio, ECO se enseña ejecutándolo en la máquina de la autora y
+publicando esa ejecución con un túnel. **Es para enseñarlo en vivo —una reunión, una
+entrevista, la defensa—, no para poner el enlace en un CV:** la URL cambia cada vez que se
+levanta el túnel y solo funciona con el ordenador encendido.
+
+### Antes de empezar (una sola vez)
+
+En el archivo `.env`, descomentar las líneas del túnel que se vaya a usar (están escritas en
+`.env.example`) y poner `DJANGO_DEBUG=False`. Sin eso, la aplicación responde `DisallowedHost`
+a todo el que abra el enlace, o deja mirar pero no validar. El script lo comprueba antes de
+arrancar y dice exactamente qué falta.
+
+### Cada vez
+
+1. PostgreSQL en marcha en la máquina (la base gestionada no sirve aquí: ver la sección sobre
+   el puerto 5432 filtrado).
+2. Arrancar la aplicación:
+
+   ```bash
+   python scripts/servir_local.py --tunel vscode
+   ```
+
+   Usa **waitress**, no el `runserver` de Django: el de desarrollo atiende de uno en uno y no
+   está pensado para recibir visitas de fuera. Escucha solo en `127.0.0.1`, así que no queda
+   expuesta al resto de la red local — el túnel se conecta desde la propia máquina.
+
+3. Abrir el túnel:
+   - **VS Code:** pestaña `PORTS` → *Forward a Port* → `8000` → clic derecho en la fila →
+     *Port Visibility* → **Public**. Copiar el enlace.
+   - **Cloudflare:** en otra terminal, `cloudflared tunnel --url http://localhost:8000`.
+     Imprime una URL `*.trycloudflare.com`.
+
+4. Compartir el enlace. Para parar: `Ctrl+C` en la terminal del servidor y cerrar el túnel.
+
+### Lo que hay que vigilar
+
+- **La suspensión del ordenador mata el enlace.** Poner la suspensión en "Nunca" mientras dure.
+- **La aplicación queda accesible para cualquiera que tenga la URL.** De ahí que `DEBUG=False`
+  sea obligatorio y que el usuario validador necesite una contraseña seria.
+- Con los modelos cargados, el proceso ocupa en torno a 1,5 GB de memoria.
+- No hace falta abrir puertos del router, ni IP fija, ni dominio: el túnel sale desde dentro.
+
 ## Si no puedes conectar a la base desde tu máquina
 
 Comprobado el 2026-09-24 desde la red de desarrollo: el puerto **5432 está filtrado**. La
