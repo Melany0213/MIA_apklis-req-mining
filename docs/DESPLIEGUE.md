@@ -131,6 +131,31 @@ primera vez tarda y ocupa unos 3 GB.
 máquina de desarrollo). El primer `docker build` —o la primera construcción del Space—
 es la verificación que falta.
 
+## Si no puedes conectar a la base desde tu máquina
+
+Comprobado el 2026-09-24 desde la red de desarrollo: el puerto **5432 está filtrado**. La
+conexión TCP se establece pero el `SSLRequest` de PostgreSQL nunca recibe respuesta, mientras
+que el **mismo host por el 443 negocia TLS sin problema** — o sea, no es Neon ni es la
+configuración del proyecto, es la red.
+
+Consecuencias:
+
+- **No afecta al despliegue.** El contenedor corre en la infraestructura del proveedor, que sí
+  alcanza la base por 5432. Las migraciones las aplica `entrypoint.sh` al arrancar.
+- **Sí impide probar contra la base gestionada desde local.** Para desarrollo se sigue usando
+  el PostgreSQL local con las variables `DB_*`; `DATABASE_URL` solo se define en el Space.
+- Para comprobar la cadena de conexión desde fuera del despliegue haría falta otra red.
+
+Diagnóstico rápido, si vuelve a pasar en otro sitio:
+
+```bash
+python -c "import socket,ssl; h='<host>.neon.tech'
+s=socket.create_connection((h,5432),timeout=15)
+ssl.create_default_context().wrap_socket(s,server_hostname=h)"
+```
+
+Si eso se cuelga y con `443` en su lugar funciona, es filtrado de puerto, no la base.
+
 ## Limitaciones conocidas
 
 - **El Space gratuito se duerme** tras 48 h sin visitas; la primera petición después

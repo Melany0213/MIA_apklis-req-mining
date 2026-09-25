@@ -4,7 +4,19 @@
 set -e
 
 echo "==> Migraciones"
-python webapp/manage.py migrate --noinput
+# Una base gestionada gratuita se suspende cuando no se usa: la primera
+# conexion tiene que despertarla y puede tardar o fallar una vez. Se
+# reintenta antes de dar el arranque por perdido.
+intentos=0
+until python webapp/manage.py migrate --noinput; do
+    intentos=$((intentos + 1))
+    if [ "$intentos" -ge 5 ]; then
+        echo "ERROR: la base de datos no respondio tras 5 intentos" >&2
+        exit 1
+    fi
+    echo "   base no disponible todavia; reintento $intentos de 5 en 10 s"
+    sleep 10
+done
 
 echo "==> Usuario administrador"
 python webapp/manage.py asegurar_admin
