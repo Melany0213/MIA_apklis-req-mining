@@ -112,19 +112,18 @@ def svg_de(fig):
     raise ValueError(tipo)
 
 
-def globo(cx, cy, escala=1.0):
-    """Globo de dialogo: la opinion del usuario."""
-    a, b, r = 62 * escala, 48 * escala, 26 * escala
-    return [
-        rrect(cx - a, cy - b, cx + a, cy + b - 6 * escala, r, BLANCO),
-        tri(cx - 36 * escala, cy + 30 * escala,
-            cx - 46 * escala, cy + 80 * escala,
-            cx + 6 * escala, cy + 34 * escala, BLANCO),
-    ]
+def disco(cx, cy, r, color, op=1.0):
+    """Circulo relleno (se dibuja como un arco cerrado de grosor r)."""
+    return ("arco", (cx, cy, r / 2, -180, 180, r), color, op)
+
+
+def capsula(x0, y0, x1, y1, color, op=1.0):
+    """Renglon de esquinas totalmente redondeadas."""
+    return rrect(x0, y0, x1, y1, (y1 - y0) / 2, color, op)
 
 
 def eco_arcos(cx, cy, pares, grosor, apertura=52.0):
-    """Arcos a ambos lados: el eco que va y vuelve."""
+    """Arcos a ambos lados: el eco de la multitud de usuarios, que va y vuelve."""
     figs = []
     for r, op in pares:
         figs.append(arco(cx, cy, r, -apertura, apertura, grosor, BLANCO, op))
@@ -132,18 +131,59 @@ def eco_arcos(cx, cy, pares, grosor, apertura=52.0):
     return figs
 
 
+def globo(x0, y0, x1, y1, r, rabito):
+    """Globo de dialogo: la opinion cruda del usuario."""
+    ax, ay, bx, by, cx, cy = rabito
+    return [rrect(x0, y0, x1, y1, r, BLANCO), tri(ax, ay, bx, by, cx, cy, BLANCO)]
+
+
+def renglones(filas):
+    """Lo que el metodo saca de la opinion: renglones de distinto peso.
+
+    Los tres pesos no son decorativos — representan las tres etiquetas del
+    dominio (RF, RNF, Ruido), que es justo lo que la fase 4 separa.
+    """
+    return [capsula(x0, y0, x1, y1, NAVY, op) for x0, y0, x1, y1, op in filas]
+
+
+def sello_validacion(cx, cy, r, tic):
+    """El tic de la fase 5: nada sale del sistema sin que una persona lo apruebe."""
+    (ax, ay), (bx, by), (dx, dy), grosor = tic
+    return [
+        disco(cx, cy, r, BLANCO),
+        seg(ax, ay, bx, by, grosor, NAVY),
+        seg(bx, by, dx, dy, grosor, NAVY),
+    ]
+
+
 def isotipo():
+    """La historia completa: la opinion entra, sale clasificada, un humano la valida.
+
+    De fuera hacia dentro: el eco de la multitud (arcos), la opinion (globo),
+    los requisitos ya separados por tipo (renglones) y la validacion (sello).
+    """
     figs = [rrect(0, 0, 512, 512, 112, GRAD)]
-    figs += eco_arcos(256, 256, [(150.0, 1.0), (218.0, 0.5)], 34)
-    figs += globo(256, 244)
+    figs += eco_arcos(236, 204, [(180.0, 0.5)], 22, apertura=44)
+    figs += eco_arcos(236, 204, [(214.0, 0.25)], 22, apertura=40)
+    figs += globo(96, 112, 376, 296, 52, (152, 284, 138, 352, 216, 296))
+    figs += renglones([
+        (136, 148, 300, 178, 1.0),
+        (136, 196, 336, 226, 0.5),
+        (136, 244, 262, 274, 0.26),
+    ])
+    figs += sello_validacion(388, 356, 76, ((362, 356), (380, 376), (418, 328), 20))
     return figs
 
 
 def favicon():
-    """Menos elementos y mas gruesos: tiene que leerse a 16-32 px."""
+    """Version reducida: a 16-32 px solo sobreviven globo, dos renglones y sello."""
     figs = [rrect(0, 0, 512, 512, 96, GRAD)]
-    figs += eco_arcos(256, 256, [(190.0, 1.0)], 46, apertura=44)
-    figs += globo(256, 238, escala=1.30)
+    figs += globo(72, 118, 396, 330, 56, (132, 312, 112, 402, 236, 322))
+    figs += renglones([
+        (120, 168, 300, 208, 1.0),
+        (120, 238, 348, 278, 0.45),
+    ])
+    figs += sello_validacion(390, 362, 104, ((354, 362), (378, 390), (430, 320), 26))
     return figs
 
 

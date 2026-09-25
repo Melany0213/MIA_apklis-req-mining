@@ -7,10 +7,16 @@
     </linearGradient>
   </defs>
   <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#fondo)"/>
-  <path d="M 348.35 137.80 A 150 150 0 0 1 348.35 374.20" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round"/>
-  <path d="M 163.65 374.20 A 150 150 0 0 1 163.65 137.80" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round"/>
-  <path d="M 390.21 84.21 A 218 218 0 0 1 390.21 427.79" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round" opacity="0.5"/>
-  <path d="M 121.79 427.79 A 218 218 0 0 1 121.79 84.21" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round" opacity="0.5"/>
-  <rect x="194" y="196" width="124" height="90" rx="26" fill="#ffffff"/>
-  <path d="M 220 274 L 210 324 L 262 278 Z" fill="#ffffff"/>
+  <path d="M 365.48 78.96 A 180 180 0 0 1 365.48 329.04" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 106.52 329.04 A 180 180 0 0 1 106.52 78.96" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 399.93 66.44 A 214 214 0 0 1 399.93 341.56" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round" opacity="0.25"/>
+  <path d="M 72.07 341.56 A 214 214 0 0 1 72.07 66.44" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round" opacity="0.25"/>
+  <rect x="96" y="112" width="280" height="184" rx="52" fill="#ffffff"/>
+  <path d="M 152 284 L 138 352 L 216 296 Z" fill="#ffffff"/>
+  <rect x="136" y="148" width="164" height="30" rx="15" fill="#1a3a6e"/>
+  <rect x="136" y="196" width="200" height="30" rx="15" fill="#1a3a6e" opacity="0.5"/>
+  <rect x="136" y="244" width="126" height="30" rx="15" fill="#1a3a6e" opacity="0.26"/>
+  <circle cx="388" cy="356" r="38" fill="none" stroke="#ffffff" stroke-width="76"/>
+  <path d="M 362 356 L 380 376" fill="none" stroke="#1a3a6e" stroke-width="20" stroke-linecap="round"/>
+  <path d="M 380 376 L 418 328" fill="none" stroke="#1a3a6e" stroke-width="20" stroke-linecap="round"/>
 </svg>
